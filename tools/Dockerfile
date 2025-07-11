@@ -11,3 +11,6 @@ RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo \
     -u 1001 ubuntu
 USER ubuntu
 WORKDIR /home/ubuntu
+
+# Keep Docker container running
+CMD ["tail", "-f", "/dev/null"]
