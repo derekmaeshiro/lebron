@@ -1,6 +1,6 @@
 # Directories
 
-# Tools path for Arm Directory
+# Tools path for Arm Directory 
 ## Personal: /Applications/ArmGNUToolchain/14.3.rel1/arm-none-eabi
 TOOLS_ARM_DIR = ${TOOLS_ARM_DIR_PATH}
 ARMGCC_ROOT_DIR = $(TOOLS_ARM_DIR)
