@@ -2,6 +2,12 @@
 ARMGCC_ROOT_DIR = /Applications/ArmGNUToolchain/14.3.rel1/arm-none-eabi
 ARMGCC_BIN_DIR = $(ARMGCC_ROOT_DIR)/bin
 ARMGCC_INCLUDE_DIR = $(ARMGCC_ROOT_DIR)/include
+ARMGCC_LIB_DIR = $(ARMGCC_ROOT_DIR)/lib
+ARMGCC_LIB_GCC_DIR = $(ARMGCC_LIB_DIR)/gcc/arm-none-eabi/14.3.1
+ARMGCC_STANDARD_LIB_INCLUDE_DIRS = $(ARMGCC_LIB_GCC_DIR)/include \
+								   $(ARMGCC_LIB_GCC_DIR)/include-fixed \
+
+# include directory features files taken from STM32CubeIDE
 INCLUDE = include
 INCLUDE_DIRS = $(INCLUDE)
 LIB_DIRS = $(INCLUDE)
@@ -67,7 +73,12 @@ flash: $(TARGET)
 
 cppcheck:
 	@$(CPPCHECK) --quiet --enable=all --error-exitcode=1 \
-	--inline-suppr \
+	--inline-suppr --force \
+	--suppress=missingIncludeSystem \
+	--suppress=unusedFunction \
+	--suppress=*:include/* \
+	-DSTM32F446xx \
 	-I $(INCLUDE_DIRS) \
+	-I $(ARMGCC_INCLUDE_DIR) \
+	$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
 	$(SOURCES)
-	-i include
