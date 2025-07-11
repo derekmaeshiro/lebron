@@ -7,7 +7,7 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
-      - run: /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/arm-none-eabi-gcc
+      - run: /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin/arm-none-eabi-gcc
       - run: TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make clean
       - run: TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make
       - run: TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make cppcheck
