@@ -1,5 +1,9 @@
 # Directories
-ARMGCC_ROOT_DIR = /Applications/ArmGNUToolchain/14.3.rel1/arm-none-eabi
+
+# Tools path for Arm Directory
+## Personal: /Applications/ArmGNUToolchain/14.3.rel1/arm-none-eabi
+TOOLS_ARM_DIR = ${TOOLS_ARM_DIR_PATH}
+ARMGCC_ROOT_DIR = $(TOOLS_ARM_DIR)
 ARMGCC_BIN_DIR = $(ARMGCC_ROOT_DIR)/bin
 ARMGCC_INCLUDE_DIR = $(ARMGCC_ROOT_DIR)/include
 ARMGCC_LIB_DIR = $(ARMGCC_ROOT_DIR)/lib
@@ -8,7 +12,7 @@ ARMGCC_STANDARD_LIB_INCLUDE_DIRS = $(ARMGCC_LIB_GCC_DIR)/include \
 								   $(ARMGCC_LIB_GCC_DIR)/include-fixed \
 
 # include directory features files taken from STM32CubeIDE
-INCLUDE = include
+INCLUDE = $(ARMGCC_INCLUDE_DIR)
 INCLUDE_DIRS = $(INCLUDE)
 LIB_DIRS = $(INCLUDE)
 BUILD_DIR = build
@@ -17,7 +21,11 @@ BIN_DIR = $(BUILD_DIR)/bin
 
 # OpenOCD = Debugger / Program Loader
 OPEN_OCD = openocd
-OPEN_OCD_DIR = /opt/homebrew/Cellar/open-ocd/0.12.0_1/share/openocd/scripts
+
+# Tools Path for Open-ocd
+## Personal path: /opt/homebrew/Cellar/open-ocd/0.12.0_1/share/openocd/scripts
+TOOLS_OPEN_OCD_DIR = ${TOOLS_OPEN_OCD_DIR_PATH}
+OPEN_OCD_DIR = $(TOOLS_ARM_OPEN_OCD_DIR)
 OPEN_OCD_TARGET = $(OPEN_OCD_DIR)/target/stm32f4x.cfg
 OPEN_OCD_STLINK = $(OPEN_OCD_DIR)/interface/stlink.cfg
 
