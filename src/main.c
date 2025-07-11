@@ -16,6 +16,6 @@ int main(void)
 	while (1) {
 		led_toggle();
 		// GPIOA->ODR ^= (1U << LED_PIN);
-		for (volatile int i = 0; i < 500000; i++); // Busy wait
+		for (volatile int i = 0; i < 100000; i++); // Busy wait
 	}
 }

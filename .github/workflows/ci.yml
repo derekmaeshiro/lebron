@@ -1,0 +1,10 @@
+on: [push]
+jobs:
+  build_and_static_analysis:
+    runs-on: ubuntu-latest
+    container:
+      image: derekmaeshiro/arm-none-eabi-gcc:latest
+    steps:
+      - name: Checkout the repository
+      - uses: actions/checkout@v3
+      - run: make
