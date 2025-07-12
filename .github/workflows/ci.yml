@@ -4,7 +4,7 @@ jobs:
   build_and_static_analysis:
     runs-on: ubuntu-latest
     container:
-      image: derekmaeshiro/arm-none-eabi-gcc:latest
+      image: derekmaeshiro/arm-none-eabi-gcc-lebron:latest
     steps:
       - name: Debug users and contents
         run: |
