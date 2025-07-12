@@ -85,6 +85,7 @@ cppcheck:
 	--suppress=missingIncludeSystem \
 	--suppress=unusedFunction \
 	--suppress=*:include/* \
+	--suppress=*:$(INCLUDE)/* \
 	-DSTM32F446xx \
 	-I $(INCLUDE_DIRS) \
 	-I $(ARMGCC_INCLUDE_DIR) \
