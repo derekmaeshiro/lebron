@@ -14,8 +14,7 @@ jobs:
           ls -al /home/ubuntu
           ls -l /home/ubuntu/dev/tools/arm-none-eabi-gcc || echo "not found"
           find / -name arm-none-eabi-gcc || echo "binary not found"
-        #/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin
-
+          
       - name: Add ARM toolchain to PATH
         run: |
           if [ "$(uname -m)" = "x86_64" ]; then
@@ -28,7 +27,7 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v3
-        
+
       - name: Set toolchain path based on arch
         run: |
           if [ "$(uname -m)" = "x86_64" ]; then
@@ -44,3 +43,7 @@ jobs:
       - name: Build
         run: |
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make
+      
+      - name: Cppcheck
+        run: |
+          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make cppcheck
