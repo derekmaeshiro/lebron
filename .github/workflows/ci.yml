@@ -6,14 +6,14 @@ jobs:
     container:
       image: derekmaeshiro/arm-none-eabi-gcc:latest
     steps:
+      - name: Debug toolchain dir
+        run: ls -l /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin
+
       - name: Add ARM toolchain to PATH
         run: echo "/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin" >> $GITHUB_PATH
 
       - name: Verify compiler
         run: arm-none-eabi-gcc --version
-
-      - name: Debug toolchain dir
-        run: ls -l /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin
 
       - name: Checkout code
         uses: actions/checkout@v3
