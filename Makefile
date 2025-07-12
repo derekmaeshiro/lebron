@@ -84,7 +84,6 @@ cppcheck:
 	--inline-suppr --force \
 	--suppress=missingIncludeSystem \
 	--suppress=unusedFunction \
-	--suppress=*:include/* \
 	--suppress=*:$(INCLUDE)/* \
 	-DSTM32F446xx \
 	-I $(INCLUDE_DIRS) \
