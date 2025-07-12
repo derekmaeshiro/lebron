@@ -6,12 +6,14 @@ jobs:
     container:
       image: derekmaeshiro/arm-none-eabi-gcc:latest
     steps:
-      - name: Debug toolchain dir
-        run: id && whoami
-        run: ls -al /home
-        run: ls -al /home/ubuntu
-        run: ls -al ~
-        run: ls -l /home/ubuntu
+      - name: Debug users and contents
+        run: |
+          echo "USER=$(whoami)"
+          id
+          ls -l /home
+          ls -al /home/ubuntu
+          ls -l /home/ubuntu/dev/tools/arm-none-eabi-gcc || echo "not found"
+          find / -name arm-none-eabi-gcc || echo "binary not found"
         #/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin
 
       - name: Add ARM toolchain to PATH
