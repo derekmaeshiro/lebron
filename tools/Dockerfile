@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 # Install necessary packages
 RUN DEBIAN_FRONTEND=noninteractive \
     apt-get update && \
-    apt-get install -y wget xz-utils bzip2 make unzip cppcheck openocd
+    apt-get install -y wget xz-utils bzip2 make unzip cppcheck openocd clang-format git
 
 # --- Multi-arch Toolchain Download ---
 ARG TARGETARCH
