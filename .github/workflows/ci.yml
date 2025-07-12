@@ -9,20 +9,21 @@ jobs:
       - name: Add ARM toolchain to PATH
         run: echo "/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin" >> $GITHUB_PATH
 
-      - name: Check compiler version
+      - name: Verify compiler
         run: arm-none-eabi-gcc --version
 
-      - name: Checkout the repository
+      - name: Debug toolchain dir
+        run: ls -l /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin
+
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Sanity check compiler path
-        run: /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin/arm-none-eabi-gcc --version
-
-      - name: Make clean
-        run: TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make clean
+      - name: Clean build
+        run: |
+          TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi \
+          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make clean
 
       - name: Build
-        run: TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make
-
-      - name: Run cppcheck
-        run: TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make cppcheck
+        run: |
+          TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi \
+          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make
