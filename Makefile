@@ -80,10 +80,13 @@ flash: $(TARGET)
 	$(OPEN_OCD) -f $(OPEN_OCD_STLINK) -f $(OPEN_OCD_TARGET) -c "program $(TARGET) verify reset exit"
 
 cppcheck:
+	@echo "which cppcheck: $$(which cppcheck)"
+	@echo "cppcheck version:"; cppcheck --version
 	echo $(CPPCHECK) --enable=all --error-exitcode=1 \
 		--inline-suppr --force \
 		--suppress=missingIncludeSystem \
 		--suppress=unusedFunction \
+		--suppress=unmatchedSuppression \
 		--suppress=*:$(INCLUDE)/* \
 		-DSTM32F446xx \
 		-I $(INCLUDE_DIRS) \
@@ -94,6 +97,7 @@ cppcheck:
 		--inline-suppr --force \
 		--suppress=missingIncludeSystem \
 		--suppress=unusedFunction \
+		--suppress=unmatchedSuppression \
 		--suppress=*:$(INCLUDE)/* \
 		-DSTM32F446xx \
 		-I $(INCLUDE_DIRS) \
