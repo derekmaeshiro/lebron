@@ -80,13 +80,36 @@ flash: $(TARGET)
 	$(OPEN_OCD) -f $(OPEN_OCD_STLINK) -f $(OPEN_OCD_TARGET) -c "program $(TARGET) verify reset exit"
 
 cppcheck:
-	@$(CPPCHECK) --quiet --enable=all --error-exitcode=1 \
-	--inline-suppr --force \
-	--suppress=missingIncludeSystem \
-	--suppress=unusedFunction \
-	--suppress=*:$(INCLUDE)/* \
-	-DSTM32F446xx \
-	-I $(INCLUDE_DIRS) \
-	-I $(ARMGCC_INCLUDE_DIR) \
-	$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
-	$(SOURCES)
+	echo $(CPPCHECK) --enable=all --error-exitcode=1 \
+		--inline-suppr --force \
+		--suppress=missingIncludeSystem \
+		--suppress=unusedFunction \
+		--suppress=*:$(INCLUDE)/* \
+		-DSTM32F446xx \
+		-I $(INCLUDE_DIRS) \
+		-I $(ARMGCC_INCLUDE_DIR) \
+		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
+		$(SOURCES)
+	$(CPPCHECK) --enable=all --error-exitcode=1 \
+		--inline-suppr --force \
+		--suppress=missingIncludeSystem \
+		--suppress=unusedFunction \
+		--suppress=*:$(INCLUDE)/* \
+		-DSTM32F446xx \
+		-I $(INCLUDE_DIRS) \
+		-I $(ARMGCC_INCLUDE_DIR) \
+		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
+		$(SOURCES)
+
+
+# cppcheck:
+# 	@$(CPPCHECK) --quiet --enable=all --error-exitcode=1 \
+# 	--inline-suppr --force \
+# 	--suppress=missingIncludeSystem \
+# 	--suppress=unusedFunction \
+# 	--suppress=*:$(INCLUDE)/* \
+# 	-DSTM32F446xx \
+# 	-I $(INCLUDE_DIRS) \
+# 	-I $(ARMGCC_INCLUDE_DIR) \
+# 	$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
+# 	$(SOURCES)
