@@ -14,7 +14,7 @@ jobs:
           ls -al /home/ubuntu
           ls -l /home/ubuntu/dev/tools/arm-none-eabi-gcc || echo "not found"
           find / -name arm-none-eabi-gcc || echo "binary not found"
-          
+
       - name: Add ARM toolchain to PATH
         run: |
           if [ "$(uname -m)" = "x86_64" ]; then
@@ -46,4 +46,4 @@ jobs:
       
       - name: Cppcheck
         run: |
-          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make cppcheck
+          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make cppcheck V=1
