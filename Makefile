@@ -33,6 +33,7 @@ OPEN_OCD_STLINK = $(OPEN_OCD_DIR)/interface/stlink.cfg
 CC = $(ARMGCC_BIN_DIR)/arm-none-eabi-gcc
 RM = rm
 CPPCHECK = cppcheck
+FORMAT = clang-format
 
 # Files
 TARGET = $(BIN_DIR)/blink
@@ -69,7 +70,7 @@ $(OBJ_DIR)/%.o: %.c
 # @ is output ^ is input
 	$(CC) $(CFLAGS) -c -o $@ $^ 
 
-.PHONY: all clean cppcheck
+.PHONY: all clean cppcheck format
 
 all: $(TARGET)
 
@@ -104,6 +105,9 @@ cppcheck:
 		-I $(ARMGCC_INCLUDE_DIR) \
 		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
 		$(SOURCES)
+
+format:
+	@$(FORMAT) -i $(SOURCES)
 
 
 # cppcheck:
