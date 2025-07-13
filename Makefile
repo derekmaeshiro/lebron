@@ -38,8 +38,17 @@ FORMAT = clang-format
 # Files
 TARGET = $(BIN_DIR)/blink
 
-SOURCES = src/main.c \
-		  src/led.c
+SOURCES_WITH_HEADERS = \
+		  src/drivers/led.c \
+		  src/drivers/io.c \
+
+SOURCES = \
+		  src/main.c \
+		  $(SOURCES_WITH_HEADERS)
+
+HEADERS = \
+		  $(SOURCES_WITH_HEADERS:.c=.h) \
+		  src/common/defines.h \
 
 OBJECT_NAMES = $(SOURCES:.c=.o)
 OBJECTS = $(patsubst %, $(OBJ_DIR)/%, $(OBJECT_NAMES))
@@ -60,7 +69,9 @@ LDFLAGS = -mcpu=$(MCPU) -mthumb -$(STM_VERSION) $(addprefix -L, $(LIB_DIRS)) -T$
 SUPFLAGS = $(STARTUP) -Wl,--gc-sections
 
 # Build
+## Linking
 $(TARGET): $(OBJECTS)
+	echo $(OBJECTS)
 	@mkdir -p $(dir $@)
 	$(CC) $(LDFLAGS) $(SUPFLAGS) $^ -o $@
 
@@ -81,19 +92,19 @@ flash: $(TARGET)
 	$(OPEN_OCD) -f $(OPEN_OCD_STLINK) -f $(OPEN_OCD_TARGET) -c "program $(TARGET) verify reset exit"
 
 cppcheck:
-	@echo "which cppcheck: $$(which cppcheck)"
-	@echo "cppcheck version:"; cppcheck --version
-	echo $(CPPCHECK) --enable=all --error-exitcode=1 \
-		--inline-suppr --force \
-		--suppress=missingIncludeSystem \
-		--suppress=unusedFunction \
-		--suppress=unmatchedSuppression \
-		--suppress=*:$(INCLUDE)/* \
-		-DSTM32F446xx \
-		-I $(INCLUDE_DIRS) \
-		-I $(ARMGCC_INCLUDE_DIR) \
-		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
-		$(SOURCES)
+# 	@echo "which cppcheck: $$(which cppcheck)"
+# 	@echo "cppcheck version:"; cppcheck --version
+# 	echo $(CPPCHECK) --enable=all --error-exitcode=1 \
+# 		--inline-suppr --force \
+# 		--suppress=missingIncludeSystem \
+# 		--suppress=unusedFunction \
+# 		--suppress=unmatchedSuppression \
+# 		--suppress=*:$(INCLUDE)/* \
+# 		-DSTM32F446xx \
+# 		-I $(INCLUDE_DIRS) \
+# 		-I $(ARMGCC_INCLUDE_DIR) \
+# 		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
+# 		$(SOURCES)
 	$(CPPCHECK) --enable=all --error-exitcode=1 \
 		--inline-suppr --force \
 		--suppress=missingIncludeSystem \
@@ -107,17 +118,4 @@ cppcheck:
 		$(SOURCES)
 
 format:
-	@$(FORMAT) -i $(SOURCES)
-
-
-# cppcheck:
-# 	@$(CPPCHECK) --quiet --enable=all --error-exitcode=1 \
-# 	--inline-suppr --force \
-# 	--suppress=missingIncludeSystem \
-# 	--suppress=unusedFunction \
-# 	--suppress=*:$(INCLUDE)/* \
-# 	-DSTM32F446xx \
-# 	-I $(INCLUDE_DIRS) \
-# 	-I $(ARMGCC_INCLUDE_DIR) \
-# 	$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
-# 	$(SOURCES)
+	@$(FORMAT) -i $(SOURCES) $(HEADERS)
