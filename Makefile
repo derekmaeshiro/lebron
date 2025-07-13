@@ -39,8 +39,8 @@ FORMAT = clang-format
 TARGET = $(BIN_DIR)/blink
 
 SOURCES_WITH_HEADERS = \
-		  src/led.c \
-		  src/drivers/uart.c \
+		  src/drivers/led.c \
+		  src/drivers/io.c \
 
 SOURCES = \
 		  src/main.c \

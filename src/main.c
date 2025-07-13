@@ -1,7 +1,6 @@
 #include <stm32f4xx.h>
 // #include "../include/stm32f446xx.h" // Include the device-specific header
-#include "../drivers/led.h"
-
+#include "drivers/led.h"
 #define LED_PIN 5
 
 int main(void)
