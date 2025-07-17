@@ -31,6 +31,7 @@ jobs:
       
       - name: Format and Git
         run: |
+          cd $GITHUB_WORKSPACE
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make format && git diff --quiet
 
       - name: Cppcheck
