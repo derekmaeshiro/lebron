@@ -20,6 +20,9 @@ jobs:
 
       - name: Checkout the repository
         uses: actions/checkout@v3
+      
+      - name: Set safe git directory by path
+        run: git config --global --add safe.directory /__w/lebron/lebron
 
       - name: Set toolchain path based on arch
         run: |
