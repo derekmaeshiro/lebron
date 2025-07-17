@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: derekmaeshiro/arm-none-eabi-gcc-lebron:latest
+      options: --user 0
     steps:
       - name: Add ARM toolchain to PATH
         run: |
@@ -19,6 +20,9 @@ jobs:
 
       - name: Checkout the repository
         uses: actions/checkout@v3
+      
+      - name: Set safe git directory by path
+        run: git config --global --add safe.directory /__w/lebron/lebron
 
       - name: Set toolchain path based on arch
         run: |
@@ -27,13 +31,15 @@ jobs:
           else
             echo "TOOLS_ARM_DIR_PATH=/home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi" >> $GITHUB_ENV
           fi
-      
+  
       - name: Format and Git
         run: |
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make format && git diff --quiet
+        working-directory: ${{ github.workspace }}
 
       - name: Cppcheck
         run: |
+          cppcheck --version
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make cppcheck
 
       - name: Clean build

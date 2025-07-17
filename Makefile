@@ -41,6 +41,7 @@ TARGET = $(BIN_DIR)/blink
 SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
 		  src/drivers/io.c \
+		  src/drivers/mcu_init.c \
 
 SOURCES = \
 		  src/main.c \
@@ -55,7 +56,7 @@ OBJECTS = $(patsubst %, $(OBJ_DIR)/%, $(OBJECT_NAMES))
 
 # Flags
 MCPU = cortex-m4
-STM_VERSION = DSTM32F446xx
+STM_VERSION = DSTM32F446xx #DSTM32F411xE
 LINKER_SCRIPT = $(INCLUDE)/linker_script.ld
 STARTUP = $(INCLUDE)/startup.c
 
@@ -86,7 +87,7 @@ $(OBJ_DIR)/%.o: %.c
 all: $(TARGET)
 
 clean:
-	$(RM) -r $(BUILD_DIR)
+	$(RM) -rf $(BUILD_DIR)
 
 flash: $(TARGET)
 	$(OPEN_OCD) -f $(OPEN_OCD_STLINK) -f $(OPEN_OCD_TARGET) -c "program $(TARGET) verify reset exit"
@@ -94,11 +95,13 @@ flash: $(TARGET)
 cppcheck:
 	$(CPPCHECK) --enable=all --error-exitcode=1 \
 		--inline-suppr --force \
+		--check-level=exhaustive \
 		--suppress=missingIncludeSystem \
 		--suppress=unusedFunction \
 		--suppress=unmatchedSuppression \
+		--suppress=staticFunction \
 		--suppress=*:$(INCLUDE)/* \
-		-DSTM32F446xx \
+		-$(STM_VERSION) \
 		-I $(INCLUDE_DIRS) \
 		-I $(ARMGCC_INCLUDE_DIR) \
 		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
