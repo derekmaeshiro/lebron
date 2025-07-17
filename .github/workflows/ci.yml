@@ -34,6 +34,7 @@ jobs:
 
       - name: Cppcheck
         run: |
+          cppcheck --version
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make cppcheck
 
       - name: Clean build
