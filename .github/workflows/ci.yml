@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: derekmaeshiro/arm-none-eabi-gcc-lebron:latest
+      options: --user 0
     steps:
       - name: Add ARM toolchain to PATH
         run: |
