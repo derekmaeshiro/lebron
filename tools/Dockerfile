@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Install necessary packages
 RUN DEBIAN_FRONTEND=noninteractive \
@@ -30,6 +30,5 @@ COPY docker_include /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-1
 COPY docker_include /home/ubuntu/dev/tools/arm-none-eabi-gcc/arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/include
 
 # Create a non-root user named "ubuntu"
-RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu
 USER ubuntu
 WORKDIR /home/ubuntu
