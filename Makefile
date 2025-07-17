@@ -95,9 +95,11 @@ flash: $(TARGET)
 cppcheck:
 	$(CPPCHECK) --enable=all --error-exitcode=1 \
 		--inline-suppr --force \
+		--check-level=exhaustive \
 		--suppress=missingIncludeSystem \
 		--suppress=unusedFunction \
 		--suppress=unmatchedSuppression \
+		--suppress=staticFunction \
 		--suppress=*:$(INCLUDE)/* \
 		-$(STM_VERSION) \
 		-I $(INCLUDE_DIRS) \

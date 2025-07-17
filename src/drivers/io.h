@@ -9,61 +9,61 @@
 
 typedef enum {
     // ---- Port A ----
-    IO_PA0,   // PA0: A0, ADC1_IN0, TIM2_CH1, TIM5_CH1
-    IO_PA1,   // PA1: A1, ADC1_IN1, TIM2_CH2, TIM5_CH2
-    IO_PA2,   // PA2: D1, USART2_TX, TIM2_CH3, ADC1_IN2
-    IO_PA3,   // PA3: D0, USART2_RX, TIM2_CH4, ADC1_IN3
-    IO_PA4,   // PA4: A2, ADC1_IN4, SPI1_NSS, DAC1_OUT1
-    IO_PA5,   // PA5: D13, SPI1_SCK, ADC1_IN5, DAC1_OUT2, onboard LED
-    IO_PA6,   // PA6: D12, SPI1_MISO, ADC1_IN6, TIM3_CH1
-    IO_PA7,   // PA7: D11, SPI1_MOSI, ADC1_IN7, TIM3_CH2
-    IO_PA8,   // PA8: D7, TIM1_CH1, MCO1
-    IO_PA9,   // PA9: D8, USART1_TX, TIM1_CH2
-    IO_PA10,  // PA10: D2, USART1_RX, TIM1_CH3
-    IO_PA11,  // PA11: USB_DM, CAN1_RX, TIM1_CH4
-    IO_PA12,  // PA12: USB_DP, CAN1_TX, TIM1_ETR
-    IO_PA13,  // PA13: SWDIO (debug only, not for normal GPIO)
-    IO_PA14,  // PA14: SWCLK (debug only, not for normal GPIO)
-    IO_PA15,  // PA15: JTDI, SPI1_NSS
+    IO_PA0, // PA0: A0, ADC1_IN0, TIM2_CH1, TIM5_CH1
+    IO_PA1, // PA1: A1, ADC1_IN1, TIM2_CH2, TIM5_CH2
+    IO_PA2, // PA2: D1, USART2_TX, TIM2_CH3, ADC1_IN2
+    IO_PA3, // PA3: D0, USART2_RX, TIM2_CH4, ADC1_IN3
+    IO_PA4, // PA4: A2, ADC1_IN4, SPI1_NSS, DAC1_OUT1
+    IO_PA5, // PA5: D13, SPI1_SCK, ADC1_IN5, DAC1_OUT2, onboard LED
+    IO_PA6, // PA6: D12, SPI1_MISO, ADC1_IN6, TIM3_CH1
+    IO_PA7, // PA7: D11, SPI1_MOSI, ADC1_IN7, TIM3_CH2
+    IO_PA8, // PA8: D7, TIM1_CH1, MCO1
+    IO_PA9, // PA9: D8, USART1_TX, TIM1_CH2
+    IO_PA10, // PA10: D2, USART1_RX, TIM1_CH3
+    IO_PA11, // PA11: USB_DM, CAN1_RX, TIM1_CH4
+    IO_PA12, // PA12: USB_DP, CAN1_TX, TIM1_ETR
+    IO_PA13, // PA13: SWDIO (debug only, not for normal GPIO)
+    IO_PA14, // PA14: SWCLK (debug only, not for normal GPIO)
+    IO_PA15, // PA15: JTDI, SPI1_NSS
 
     // ---- Port B ----
-    IO_PB0,   // PB0: A3, ADC1_IN8, TIM3_CH3
-    IO_PB1,   // PB1: A4, ADC1_IN9, TIM3_CH4
-    IO_PB2,   // PB2: BOOT1
-    IO_PB3,   // PB3: D3, SPI1_SCK, JTDO, TIM2_CH2
-    IO_PB4,   // PB4: D5, SPI1_MISO, NJTRST, TIM3_CH1
-    IO_PB5,   // PB5: D4, CAN2_RX, TIM3_CH2, I2C1_SMBA
-    IO_PB6,   // PB6: D10, I2C1_SCL, USART1_TX, TIM4_CH1
-    IO_PB7,   // PB7: D9, I2C1_SDA, USART1_RX, TIM4_CH2
-    IO_PB8,   // PB8: D15, I2C1_SCL, TIM4_CH3
-    IO_PB9,   // PB9: D14, I2C1_SDA, TIM4_CH4
-    IO_PB10,  // PB10: D6, I2C2_SCL, USART3_TX, TIM2_CH3
-    IO_PB11,  // PB11: USART3_RX, I2C2_SDA, TIM2_CH4
-    IO_PB12,  // PB12: D5, SPI2_NSS, I2C2_SMBALERT, UART5_RX
-    IO_PB13,  // PB13: D3, SPI2_SCK, TIM1_CH1N
-    IO_PB14,  // PB14: SPI2_MISO, TIM1_CH2N
-    IO_PB15,  // PB15: SPI2_MOSI, RTC_REFIN
+    IO_PB0, // PB0: A3, ADC1_IN8, TIM3_CH3
+    IO_PB1, // PB1: A4, ADC1_IN9, TIM3_CH4
+    IO_PB2, // PB2: BOOT1
+    IO_PB3, // PB3: D3, SPI1_SCK, JTDO, TIM2_CH2
+    IO_PB4, // PB4: D5, SPI1_MISO, NJTRST, TIM3_CH1
+    IO_PB5, // PB5: D4, CAN2_RX, TIM3_CH2, I2C1_SMBA
+    IO_PB6, // PB6: D10, I2C1_SCL, USART1_TX, TIM4_CH1
+    IO_PB7, // PB7: D9, I2C1_SDA, USART1_RX, TIM4_CH2
+    IO_PB8, // PB8: D15, I2C1_SCL, TIM4_CH3
+    IO_PB9, // PB9: D14, I2C1_SDA, TIM4_CH4
+    IO_PB10, // PB10: D6, I2C2_SCL, USART3_TX, TIM2_CH3
+    IO_PB11, // PB11: USART3_RX, I2C2_SDA, TIM2_CH4
+    IO_PB12, // PB12: D5, SPI2_NSS, I2C2_SMBALERT, UART5_RX
+    IO_PB13, // PB13: D3, SPI2_SCK, TIM1_CH1N
+    IO_PB14, // PB14: SPI2_MISO, TIM1_CH2N
+    IO_PB15, // PB15: SPI2_MOSI, RTC_REFIN
 
     // ---- Port C ----
-    IO_PC0,   // PC0: A5, ADC1_IN10
-    IO_PC1,   // PC1: A4, ADC1_IN11
-    IO_PC2,   // PC2: ADC1_IN12, SPI2_MISO
-    IO_PC3,   // PC3: ADC1_IN13, SPI2_MOSI
-    IO_PC4,   // PC4: ADC1_IN14, I2C2_SDA
-    IO_PC5,   // PC5: ADC1_IN15, I2C2_SMBA
-    IO_PC6,   // PC6: TIM3_CH1, USART6_TX
-    IO_PC7,   // PC7: TIM3_CH2, USART6_RX
-    IO_PC8,   // PC8: TIM3_CH3
-    IO_PC9,   // PC9: TIM3_CH4, I2C3_SDA
-    IO_PC10,  // PC10: UART4_TX, USART3_TX
-    IO_PC11,  // PC11: UART4_RX, USART3_RX
-    IO_PC12,  // PC12: UART5_TX, USART3_CK
-    IO_PC13,  // PC13: USER_BUTTON (blue button), RTC_AF1
-    IO_PC14,  // PC14: OSC32_IN (for LSE crystal, not header)
-    IO_PC15,  // PC15: OSC32_OUT (for LSE crystal, not header)
+    IO_PC0, // PC0: A5, ADC1_IN10
+    IO_PC1, // PC1: A4, ADC1_IN11
+    IO_PC2, // PC2: ADC1_IN12, SPI2_MISO
+    IO_PC3, // PC3: ADC1_IN13, SPI2_MOSI
+    IO_PC4, // PC4: ADC1_IN14, I2C2_SDA
+    IO_PC5, // PC5: ADC1_IN15, I2C2_SMBA
+    IO_PC6, // PC6: TIM3_CH1, USART6_TX
+    IO_PC7, // PC7: TIM3_CH2, USART6_RX
+    IO_PC8, // PC8: TIM3_CH3
+    IO_PC9, // PC9: TIM3_CH4, I2C3_SDA
+    IO_PC10, // PC10: UART4_TX, USART3_TX
+    IO_PC11, // PC11: UART4_RX, USART3_RX
+    IO_PC12, // PC12: UART5_TX, USART3_CK
+    IO_PC13, // PC13: USER_BUTTON (blue button), RTC_AF1
+    IO_PC14, // PC14: OSC32_IN (for LSE crystal, not header)
+    IO_PC15, // PC15: OSC32_OUT (for LSE crystal, not header)
 
     // ---- Port D ----
-    IO_PD2,   // PD2: SDIO_CMD
+    IO_PD2, // PD2: SDIO_CMD
 
     IO_PIN_MAX // Marker
 } io_pin_e;
@@ -99,7 +99,7 @@ typedef enum {
     IO_ANALOG_MUX_ENABLE_2 = IO_PB13, // Analog Mux Enable Pin
     IO_ANALOG_MUX_COM_1 = IO_PA0, // Analog Mux Output Pin
     IO_ANALOG_MUX_COM_2 = IO_PA1, // Analog Mux Output Pin
-    IO_PWM_DISTAL_INTERPHALANGEAL_JOINT = IO_PA6, // DIP (top) (orientation #1) 
+    IO_PWM_DISTAL_INTERPHALANGEAL_JOINT = IO_PA6, // DIP (top) (orientation #1)
     IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT = IO_PA7, // PIP (middle) (orientation #1)
     IO_PWM_METACARPOPHALANGEAL_JOINT_1 = IO_PC6, // MCP (knuckles) (orientation #1)
     IO_PWM_METACARPOPHALANGEAL_JOINT_2 = IO_PB10, // MCP (knuckles) (orientation #2)
@@ -118,30 +118,26 @@ typedef enum {
 
 /* Select Registers (MODER) and (AFR[0], AFR[1]) */
 /* Final Selection */
-typedef enum
-{
+typedef enum {
     IO_SELECT_INPUT,
     IO_SELECT_OUTPUT,
     IO_SELECT_ALT,
     IO_SELECT_ANALOG,
 } io_select_e;
 
-typedef enum 
-{
+typedef enum {
     IO_RESISTOR_DISABLED,
     IO_PULL_UP_ENABLED,
     IO_PULL_DOWN_ENABLED,
     IO_RESERVED,
 } io_resistor_e;
 
-typedef enum
-{
+typedef enum {
     IO_IN_LOW,
     IO_IN_HIGH,
 } io_in_e;
 
-typedef enum
-{
+typedef enum {
     IO_ALT_FUNCTION_0,
     IO_ALT_FUNCTION_1,
     IO_ALT_FUNCTION_2,
@@ -160,8 +156,7 @@ typedef enum
     IO_ALT_FUNCTION_15,
 } io_alt_function_e;
 
-typedef enum 
-{
+typedef enum {
     IO_OUT_LOW,
     IO_OUT_HIGH,
 } io_out_e;

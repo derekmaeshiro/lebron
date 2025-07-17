@@ -55,62 +55,60 @@ static void test_setup(void)
 //     }
 // }
 
-/* Configure all the pins except PA5 as input with internal pull-up resistors. 
+/* Configure all the pins except PA5 as input with internal pull-up resistors.
    Expected behavior: */
 static void test_nucleo_io_pins_input(void)
 {
     test_setup();
-    const struct io_config input_config = {
-        .select = IO_SELECT_INPUT,
-        .resistor = IO_PULL_UP_ENABLED,
-        .out = IO_OUT_HIGH
-    };
+    const struct io_config input_config = { .select = IO_SELECT_INPUT,
+                                            .resistor = IO_PULL_UP_ENABLED,
+                                            .out = IO_OUT_HIGH };
 
     const struct io_config led_config = { .select = IO_SELECT_OUTPUT,
                                           .io_alt_function = IO_ALT_FUNCTION_0,
                                           .resistor = IO_RESISTOR_DISABLED,
                                           .out = IO_OUT_LOW };
-    
+
     const io_pin_e io_led = IO_PA5;
 
     // Configure all pins as input
     for (io_pin_e io = IO_PA0; io <= IO_PD2; io++) {
-        io_configure( (io_e) io, &input_config);
+        io_configure((io_e)io, &input_config);
     }
-    
+
     // Configure led pin as output
-    io_configure( (io_e) io_led, &led_config);
+    io_configure((io_e)io_led, &led_config);
 
     for (io_pin_e io = IO_PA0; io <= IO_PD2; io++) {
         if (io == io_led) {
             continue;
         }
 
-        io_set_out( (io_e) io_led, IO_OUT_HIGH);
-        
+        io_set_out((io_e)io_led, IO_OUT_HIGH);
+
         // Wait for the operator to pull the pin low
-        while (io_get_input( (io_e) io) == IO_IN_HIGH) {
-            for (volatile int i = 0; i < 10000; i++) {}
+        while (io_get_input((io_e)io) == IO_IN_HIGH) {
+            for (volatile int i = 0; i < 10000; i++) { }
         }
 
-        io_set_out( (io_e) io_led, IO_OUT_LOW);
+        io_set_out((io_e)io_led, IO_OUT_LOW);
 
         // Wait for user to disconnect
-        while (io_get_input( (io_e) io) == IO_IN_LOW) {
-            for (volatile int i = 0; i < 10000; i++) {}
+        while (io_get_input((io_e)io) == IO_IN_LOW) {
+            for (volatile int i = 0; i < 10000; i++) { }
         }
     }
 
     // Blink LED when test is done
     while (1) {
-        io_set_out( (io_e) io_led, IO_OUT_HIGH);
-        for (volatile int i = 0; i < 500000; i++) {}
-        io_set_out( (io_e) io_led, IO_OUT_LOW);
-        for (volatile int i = 0; i < 500000; i++) {}
+        io_set_out((io_e)io_led, IO_OUT_HIGH);
+        for (volatile int i = 0; i < 500000; i++) { }
+        io_set_out((io_e)io_led, IO_OUT_LOW);
+        for (volatile int i = 0; i < 500000; i++) { }
     }
 }
 
-int main (void)
+int main(void)
 {
     test_nucleo_io_pins_input();
     // test_nucleo_io_pins_output();
