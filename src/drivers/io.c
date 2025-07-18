@@ -9,6 +9,8 @@
 #define IO_PORT_OFFSET (4u)
 #define IO_PORT_MASK (0x3u << IO_PORT_OFFSET)
 #define IO_PIN_MASK (0xFu)
+#define IO_PORT_CNT 4
+#define IO_PIN_CNT_PER_PORT 16
 
 /* MODER is 32 bits long for each port. AFR is 64 bits long, but is split into 2 groups: AFR[0] and
    AFR[1]. AFR[0] controls pins 0-7 and AFR[1] controls pins 8-15. Each pin gets 4 bits to choose
@@ -49,6 +51,83 @@ static void io_enable_clock(io_e io)
 
 /* GPIO Type Def Array */
 static GPIO_TypeDef *const gpio_ports[] = { GPIOA, GPIOB, GPIOC, GPIOD };
+
+/* This array holds the initial configs of all IO pins. */
+/* Never: PA13, PA14 (debug) - don't touch */
+static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PORT] = {
+#if defined(ROBOTIC_ARM)
+    // Application Pins
+    [IO_TEST_LED] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PA5 OUTPUT
+    [IO_I2C_SCL] = { IO_SELECT_ALT, IO_ALT_FUNCTION_4, IO_PULL_UP_ENABLED,
+                     IO_OUT_HIGH }, // PB8 I2C1_SCL
+    [IO_I2C_SDA] = { IO_SELECT_ALT, IO_ALT_FUNCTION_4, IO_PULL_UP_ENABLED,
+                     IO_OUT_HIGH }, // PB9 I2C1_SDA
+    [IO_UART_RXD] = { IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PA10 USART1_RX
+    [IO_UART_TXD] = { IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PA9 USART1_TX
+    [IO_ANALOG_MUX_S0] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                           IO_OUT_LOW }, // PB4 Output etc
+    [IO_ANALOG_MUX_S1] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                           IO_OUT_LOW }, // PB5
+    [IO_ANALOG_MUX_S2] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                           IO_OUT_LOW }, // PB3
+    [IO_ANALOG_MUX_S3] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                           IO_OUT_LOW }, // PA15
+    [IO_ANALOG_MUX_ENABLE_1] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                                 IO_OUT_LOW }, // PB12
+    [IO_ANALOG_MUX_ENABLE_2] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                                 IO_OUT_LOW }, // PB13
+    [IO_ANALOG_MUX_COM_1] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
+                              IO_OUT_LOW }, // PA0
+    [IO_ANALOG_MUX_COM_2] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
+                              IO_OUT_LOW }, // PA1
+    [IO_PWM_DISTAL_INTERPHALANGEAL_JOINT] = { IO_SELECT_ALT, IO_ALT_FUNCTION_2,
+                                              IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA6 TIM?
+    [IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = { IO_SELECT_ALT, IO_ALT_FUNCTION_2,
+                                                IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA7
+    [IO_PWM_METACARPOPHALANGEAL_JOINT_1] = { IO_SELECT_ALT, IO_ALT_FUNCTION_2, IO_RESISTOR_DISABLED,
+                                             IO_OUT_LOW }, // PC6?
+    [IO_PWM_METACARPOPHALANGEAL_JOINT_2] = { IO_SELECT_ALT, IO_ALT_FUNCTION_1, IO_RESISTOR_DISABLED,
+                                             IO_OUT_LOW }, // PB10
+
+    // Board-specific
+    [IO_PA2] = { IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED, IO_OUT_LOW }, // USART2_TX
+    [IO_PA3] = { IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED, IO_OUT_LOW }, // USART2_RX
+    [IO_PC13] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
+                  IO_OUT_LOW }, // User Button
+    [IO_PC14] = { IO_SELECT_ANALOG, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                  IO_OUT_LOW }, // LSE Crystal
+    [IO_PC15] = { IO_SELECT_ANALOG, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                  IO_OUT_LOW }, // LSE Crystal
+#elif defined(ARM_SLEEVE)
+    // Application Pins
+    [IO_I2C_SCL] = { IO_SELECT_ALT, IO_ALT_FUNCTION_4, IO_PULL_UP_ENABLED,
+                     IO_OUT_HIGH }, // PB8, I2C1_SCL
+    [IO_I2C_SDA] = { IO_SELECT_ALT, IO_ALT_FUNCTION_4, IO_PULL_UP_ENABLED,
+                     IO_OUT_HIGH }, // PB9, I2C1_SDA
+    [IO_UART_TXD] = { IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PA9, USART1_TX
+    [IO_UART_RXD] = { IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PA10, USART1_RX
+    [IO_TEST_LED] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PC13, User LED
+#endif
+};
+
+// Default config for all *other* pins
+const struct io_config io_default_unused = { IO_SELECT_ANALOG, IO_ALT_FUNCTION_0,
+                                             IO_RESISTOR_DISABLED, IO_OUT_LOW };
+
+void io_init(void)
+{
+    for (int io = 0; io < IO_PIN_MAX; io++) {
+        const struct io_config *cfg =
+            (io_initial_configs[io].select != 0) ? &io_initial_configs[io] : &io_default_unused;
+        io_configure(io, cfg);
+    }
+}
 
 void io_configure(io_e io, const struct io_config *config)
 {
