@@ -1,3 +1,18 @@
+# Check arguments
+ifeq ($(HW), ROBOTIC_ARM) # HW argument
+TARGET_NAME = robotic_arm
+STM_VERSION = STM32F446xx
+else ifeq ($(HW), ARM_SLEEVE)
+TARGET_NAME = arm_sleeve
+STM_VERSION = STM32F411xE
+else ifeq ($(MAKECMDGOALS), clean)
+else ifeq ($(MAKECMDGOALS), cppcheck)
+else ifeq ($(MAKECMDGOALS), format)
+# HW argument not required for clean, cppcheck, format
+else
+$(error "Must pass HW=ROBOTIC_ARM or HW=ARM_SLEEVE")
+endif
+
 # Directories
 
 # Tools path for Arm Directory 
@@ -36,7 +51,7 @@ CPPCHECK = cppcheck
 FORMAT = clang-format
 
 # Files
-TARGET = $(BIN_DIR)/blink
+TARGET = $(BUILD_DIR)/$(TARGET_NAME)
 
 SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
@@ -54,18 +69,21 @@ HEADERS = \
 OBJECT_NAMES = $(SOURCES:.c=.o)
 OBJECTS = $(patsubst %, $(OBJ_DIR)/%, $(OBJECT_NAMES))
 
+# Defines
+HW_DEFINE = $(addprefix -D, $(HW)) # e.g. -DROBOTIC_ARM or -DARM_SLEEVE
+DEFINES = $(HW_DEFINE)
+
 # Flags
 MCPU = cortex-m4
-STM_VERSION = DSTM32F446xx #DSTM32F411xE
 LINKER_SCRIPT = $(INCLUDE)/linker_script.ld
 STARTUP = $(INCLUDE)/startup.c
 
 # Warning flags
 WFLAGS = -Wall -Wextra -Werror -Wshadow
 # Compiler flags
-CFLAGS = -mcpu=$(MCPU) -mthumb -$(STM_VERSION) $(WFLAGS) $(addprefix -I, $(INCLUDE_DIRS)) -Og -g 
+CFLAGS = -mcpu=$(MCPU) -mthumb -D$(STM_VERSION) $(WFLAGS) $(addprefix -I, $(INCLUDE_DIRS)) $(DEFINES) -Og -g 
 # Linker flags
-LDFLAGS = -mcpu=$(MCPU) -mthumb -$(STM_VERSION) $(addprefix -L, $(LIB_DIRS)) -T$(LINKER_SCRIPT) $(addprefix -I, $(INCLUDE_DIRS))
+LDFLAGS = -mcpu=$(MCPU) -mthumb -D$(STM_VERSION) $(DEFINES) $(addprefix -L, $(LIB_DIRS)) -T$(LINKER_SCRIPT) $(addprefix -I, $(INCLUDE_DIRS))
 # Start up flags
 SUPFLAGS = $(STARTUP) -Wl,--gc-sections
 
@@ -101,7 +119,7 @@ cppcheck:
 		--suppress=unmatchedSuppression \
 		--suppress=staticFunction \
 		--suppress=*:$(INCLUDE)/* \
-		-$(STM_VERSION) \
+		-D$(STM_VERSION) \
 		-I $(INCLUDE_DIRS) \
 		-I $(ARMGCC_INCLUDE_DIR) \
 		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \

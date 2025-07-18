@@ -48,4 +48,5 @@ jobs:
 
       - name: Build
         run: |
-          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make
+          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make HW=ROBOTIC_ARM
+          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make HW=ARM_SLEEVE 
