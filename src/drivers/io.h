@@ -75,16 +75,6 @@ typedef enum {
     IO_UART_RXD = IO_PA9, // Bluetooth Communication
     IO_UART_TXD = IO_PA10, // Bluetooth Communication
     IO_TEST_LED = IO_PC13, // Testing Blinky / Debugging
-    IO_UNUSED_1,
-    IO_UNUSED_2,
-    IO_UNUSED_3,
-    IO_UNUSED_4,
-    IO_UNUSED_5,
-    IO_UNUSED_6,
-    IO_UNUSED_7,
-    IO_UNUSED_8,
-    IO_UNUSED_9,
-    IO_UNUSED_10,
 #elif defined(ROBOTIC_ARM) // STM32F446RE
     IO_I2C_SCL = IO_PB8, // Servo drivers
     IO_I2C_SDA = IO_PB9, // Servo drivers
@@ -103,16 +93,6 @@ typedef enum {
     IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT = IO_PA7, // PIP (middle) (orientation #1)
     IO_PWM_METACARPOPHALANGEAL_JOINT_1 = IO_PC6, // MCP (knuckles) (orientation #1)
     IO_PWM_METACARPOPHALANGEAL_JOINT_2 = IO_PB10, // MCP (knuckles) (orientation #2)
-    IO_UNUSED_1,
-    IO_UNUSED_2,
-    IO_UNUSED_3,
-    IO_UNUSED_4,
-    IO_UNUSED_5,
-    IO_UNUSED_6,
-    IO_UNUSED_7,
-    IO_UNUSED_8,
-    IO_UNUSED_9,
-    IO_UNUSED_10,
 #endif
 } io_e;
 
@@ -170,6 +150,7 @@ struct io_config
 };
 
 // TODO: functions
+void io_init(void);
 void io_configure(io_e io, const struct io_config *config);
 void io_set_select(io_e io, io_select_e select, io_alt_function_e alt_function);
 void io_set_resistor(io_e io, io_resistor_e resistor); // only applicable if pin is set to input

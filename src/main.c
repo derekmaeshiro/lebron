@@ -43,11 +43,19 @@ static void test_setup(void)
 
 //     // Configure all pins as output
 //     for (io_pin_e io = IO_PA0; io <= IO_PD2; io++) {
+//         if (io == IO_PA13 || io == IO_PA14) {
+//             continue;
+//         }
+
 //         io_configure( (io_e) io, &output_config);
 //     }
 
 //     while (1) {
 //         for (io_pin_e io = IO_PA0; io <= IO_PD2; io++) {
+//             if (io == IO_PA13 || io == IO_PA14) {
+//                 continue;
+//             }
+
 //             io_set_out( (io_e) io, IO_OUT_HIGH);
 //             for (volatile int i = 0; i < 10000; i++) {}
 //             io_set_out( (io_e) io, IO_OUT_LOW);
@@ -56,7 +64,9 @@ static void test_setup(void)
 // }
 
 /* Configure all the pins except PA5 as input with internal pull-up resistors.
-   Expected behavior: */
+ * Expected behavior: Driving a pin to ground will turn off the led until you un-drive the pin.
+ * Some pins are, by default, configured to be UART, SPI, etc. so when they're set to pull-up,
+ * they don't work as intended. For example, PA2 and PA3 won't work as they're UART. */
 static void test_nucleo_io_pins_input(void)
 {
     test_setup();
@@ -73,6 +83,10 @@ static void test_nucleo_io_pins_input(void)
 
     // Configure all pins as input
     for (io_pin_e io = IO_PA0; io <= IO_PD2; io++) {
+        if (io == IO_PA13 || io == IO_PA14) {
+            continue;
+        }
+
         io_configure((io_e)io, &input_config);
     }
 
@@ -81,6 +95,9 @@ static void test_nucleo_io_pins_input(void)
 
     for (io_pin_e io = IO_PA0; io <= IO_PD2; io++) {
         if (io == io_led) {
+            continue;
+        }
+        if (io == IO_PA13 || io == IO_PA14) {
             continue;
         }
 
