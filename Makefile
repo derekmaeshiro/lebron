@@ -6,9 +6,8 @@ else ifeq ($(HW), ARM_SLEEVE)
 TARGET_NAME = arm_sleeve
 STM_VERSION = STM32F411xE
 else ifeq ($(MAKECMDGOALS), clean)
-else ifeq ($(MAKECMDGOALS), cppcheck)
 else ifeq ($(MAKECMDGOALS), format)
-# HW argument not required for clean, cppcheck, format
+# HW argument not required for clean, format
 else
 $(error "Must pass HW=ROBOTIC_ARM or HW=ARM_SLEEVE")
 endif
