@@ -3,10 +3,6 @@
 
 #include <stdbool.h>
 
-// TODO: Improve multiple HW handling
-// #define ARM_SLEEVE
-#define ROBOTIC_ARM
-
 typedef enum {
     // ---- Port A ----
     IO_PA0, // PA0: A0, ADC1_IN0, TIM2_CH1, TIM5_CH1
