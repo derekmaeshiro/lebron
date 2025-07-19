@@ -15,8 +15,7 @@ static void test_blink_led(void)
 {
     test_setup();
 
-    const struct io_config led_config =
-    {
+    const struct io_config led_config = {
         .select = IO_SELECT_OUTPUT,
         .io_alt_function = IO_ALT_FUNCTION_0,
         .resistor = IO_RESISTOR_DISABLED,
@@ -28,7 +27,7 @@ static void test_blink_led(void)
     while (1) {
         out = (out == IO_OUT_LOW) ? IO_OUT_HIGH : IO_OUT_LOW;
         io_set_out(IO_TEST_LED, out);
-        for (volatile int i = 0; i < 500000; i++) {}
+        for (volatile int i = 0; i < 500000; i++) { }
     }
 }
 

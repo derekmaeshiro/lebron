@@ -120,26 +120,24 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
 const struct io_config io_default_unused = { IO_SELECT_ANALOG, IO_ALT_FUNCTION_0,
                                              IO_RESISTOR_DISABLED, IO_OUT_LOW };
 
-typedef enum
-{
+typedef enum {
     HW_TYPE_ROBOTIC_ARM,
     HW_TYPE_ARM_SLEEVE,
     HW_TYPE_UNKNOWN
 } hw_type_e;
 
-/* STM32 provides a register that tells you what model their microcontroller is. 
+/* STM32 provides a register that tells you what model their microcontroller is.
  * By accessing it, we can get the ID and the hardware type. */
-#define STM32F411_DEVICE_ID  0x1B1
-#define STM32F446_DEVICE_ID  0x1C9
+#define STM32F411_DEVICE_ID 0x1B1
+#define STM32F446_DEVICE_ID 0x1C9
 
 static hw_type_e io_detect_hw_type(void)
 {
-    uint32_t dev_id = (*(volatile uint32_t*)0xE0042000) & 0xFFF;
+    uint32_t dev_id = (*(volatile uint32_t *)0xE0042000) & 0xFFF;
 
     if (dev_id == STM32F411_DEVICE_ID) {
         return HW_TYPE_ARM_SLEEVE; // F411
-    }
-    else if (dev_id == STM32F446_DEVICE_ID) {
+    } else if (dev_id == STM32F446_DEVICE_ID) {
         return HW_TYPE_ROBOTIC_ARM; // F446
     }
     return HW_TYPE_UNKNOWN;
@@ -150,16 +148,16 @@ void io_init(void)
 #if defined(ARM_SLEEVE)
     // TODO: Assert
     if (io_detect_hw_type() != HW_TYPE_ARM_SLEEVE) {
-        while (1) {}
+        while (1) { }
     }
 #elif defined(ROBOTIC_ARM)
     // TODO: Assert
     if (io_detect_hw_type() != HW_TYPE_ROBOTIC_ARM) {
-        while (1) {}
+        while (1) { }
     }
 #else
     // TODO: Assert
-    while (1) {}
+    while (1) { }
 #endif
     for (int io = 0; io < IO_PIN_MAX; io++) {
         const struct io_config *cfg =
