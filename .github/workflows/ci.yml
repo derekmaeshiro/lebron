@@ -52,3 +52,6 @@ jobs:
         run: |
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make HW=ROBOTIC_ARM
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make HW=ARM_SLEEVE 
+      - name: test script that builds all test functions for both targets
+        run: |
+          TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts tools/build_tests.sh
