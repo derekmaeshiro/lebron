@@ -4,6 +4,7 @@
 #include <stm32f4xx.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 
 /* Extracing pin and port using bitwise operations. STM32 uses 16 pins per port
  * Enum value can be seen as:
@@ -13,6 +14,8 @@
 #define IO_PIN_MASK (0xFu)
 #define IO_PORT_CNT 4
 #define IO_PIN_CNT_PER_PORT 16
+
+static_assert(sizeof(io_pin_e) == 1);
 
 /* MODER is 32 bits long for each port. AFR is 64 bits long, but is split into 2 groups: AFR[0] and
    AFR[1]. AFR[0] controls pins 0-7 and AFR[1] controls pins 8-15. Each pin gets 4 bits to choose
