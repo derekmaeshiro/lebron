@@ -57,6 +57,8 @@ CC = $(ARMGCC_BIN_DIR)/arm-none-eabi-gcc
 RM = rm
 CPPCHECK = cppcheck
 FORMAT = clang-format
+SIZE = $(ARMGCC_BIN_DIR)/arm-none-eabi-size
+READELF = $(ARMGCC_BIN_DIR)/arm-none-eabi-readelf
 
 # Files
 TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
@@ -148,3 +150,10 @@ cppcheck:
 
 format:
 	@$(FORMAT) -i $(SOURCES) $(HEADERS)
+
+size: $(TARGET)
+	@$(SIZE) $(TARGET)
+
+symbols: $(TARGET)
+# List symbols table sorted by size
+	@$(READELF) -s $(TARGET) | sort -n -k3
