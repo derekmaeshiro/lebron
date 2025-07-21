@@ -139,6 +139,7 @@ typedef enum {
 
 struct io_config
 {
+    bool used;
     io_select_e select;
     io_alt_function_e io_alt_function;
     io_resistor_e resistor;
@@ -148,6 +149,8 @@ struct io_config
 // TODO: functions
 void io_init(void);
 void io_configure(io_e io, const struct io_config *config);
+void io_get_current_config(io_e io, struct io_config *current_config);
+bool io_config_compare(const struct io_config *cfg1, const struct io_config *cfg2);
 void io_set_select(io_e io, io_select_e select, io_alt_function_e alt_function);
 void io_set_resistor(io_e io, io_resistor_e resistor); // only applicable if pin is set to input
 void io_set_out(io_e io, io_out_e out);

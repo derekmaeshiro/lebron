@@ -56,6 +56,7 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
 		  src/drivers/io.c \
 		  src/drivers/mcu_init.c \
+		  src/common/assert_handler.c \
 
 SOURCES = \
 		  src/main.c \
@@ -122,7 +123,8 @@ cppcheck:
 		-I $(INCLUDE_DIRS) \
 		-I $(ARMGCC_INCLUDE_DIR) \
 		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
-		$(SOURCES)
+		$(SOURCES) \
+		$(DEFINES)
 
 format:
 	@$(FORMAT) -i $(SOURCES) $(HEADERS)

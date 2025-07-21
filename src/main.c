@@ -3,31 +3,32 @@
 #include "drivers/led.h"
 #include "drivers/io.h"
 #include "drivers/mcu_init.h"
-
-#define LED_PIN 13
+#include "common/assert_handler.h"
+#include "common/defines.h"
 
 static void test_setup(void)
 {
     mcu_init();
 }
 
+// static void test_assert(void)
+// {
+//     test_setup();
+//     ASSERT(0);
+// }
+
 static void test_blink_led(void)
 {
     test_setup();
-
-    const struct io_config led_config = {
-        .select = IO_SELECT_OUTPUT,
-        .io_alt_function = IO_ALT_FUNCTION_0,
-        .resistor = IO_RESISTOR_DISABLED,
-    };
-
-    io_configure(IO_TEST_LED, &led_config);
-    io_out_e out = IO_OUT_LOW;
+    io_init();
+    led_init();
+    led_init();
+    led_state_e led_state = LED_STATE_OFF;
 
     while (1) {
-        out = (out == IO_OUT_LOW) ? IO_OUT_HIGH : IO_OUT_LOW;
-        io_set_out(IO_TEST_LED, out);
-        for (volatile int i = 0; i < 500000; i++) { }
+        led_state = (led_state == LED_STATE_OFF) ? LED_STATE_ON : LED_STATE_OFF;
+        led_set(LED_TEST, led_state);
+        BUSY_WAIT_ms(1000);
     }
 }
 
@@ -129,21 +130,5 @@ int main(void)
     // test_nucleo_io_pins_input();
     // test_nucleo_io_pins_output();
     test_blink_led();
+    // test_assert();
 }
-
-// int main(void)
-// {
-//     // Enable the GPIOB clock
-//     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN; // Enable clock for GPIO port B
-//     // Set pin PB0 as output
-//     GPIOC->MODER &= ~(3U << (LED_PIN * 2)); // Clear mode bits for PB0
-//     led_init();
-//     // GPIOA->MODER |= (1U << (LED_PIN * 2));
-
-//     while (1) {
-//         led_toggle();
-//         // GPIOA->ODR ^= (1U << LED_PIN);
-//         for (volatile int i = 0; i < 100000; i++)
-//             ; // Busy wait
-//     }
-// }
