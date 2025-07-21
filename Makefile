@@ -1,15 +1,24 @@
 # Check arguments
 ifeq ($(HW), ROBOTIC_ARM) # HW argument
-TARGET_NAME = robotic_arm
+TARGET_HW = robotic_arm
 STM_VERSION = STM32F446xx
 else ifeq ($(HW), ARM_SLEEVE)
-TARGET_NAME = arm_sleeve
+TARGET_HW = arm_sleeve
 STM_VERSION = STM32F411xE
 else ifeq ($(MAKECMDGOALS), clean)
 else ifeq ($(MAKECMDGOALS), format)
 # HW argument not required for clean, format
 else
 $(error "Must pass HW=ROBOTIC_ARM or HW=ARM_SLEEVE")
+endif
+TARGET_NAME = $(TARGET_HW)
+
+ifneq ($(TEST),) # TEST argument
+ifeq ($(findstring test_, $(TEST)), )
+$(error "TEST=$(TEST) is invalid (test function must start with test_)")
+else
+TARGET_NAME=$(TEST)
+endif
 endif
 
 # Directories
@@ -50,7 +59,7 @@ CPPCHECK = cppcheck
 FORMAT = clang-format
 
 # Files
-TARGET = $(BUILD_DIR)/$(TARGET_NAME)
+TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
 
 SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
@@ -58,9 +67,17 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/mcu_init.c \
 		  src/common/assert_handler.c \
 
+ifndef TEST
 SOURCES = \
 		  src/main.c \
 		  $(SOURCES_WITH_HEADERS)
+else
+SOURCES = \
+		  src/test/test.c \
+		  $(SOURCES_WITH_HEADERS)
+# Delete object file to force rebuild when changing test
+$(shell rm -f $(BUILD_DIR)/obj/src/test/test.o)
+endif
 
 HEADERS = \
 		  $(SOURCES_WITH_HEADERS:.c=.h) \
@@ -71,7 +88,10 @@ OBJECTS = $(patsubst %, $(OBJ_DIR)/%, $(OBJECT_NAMES))
 
 # Defines
 HW_DEFINE = $(addprefix -D, $(HW)) # e.g. -DROBOTIC_ARM or -DARM_SLEEVE
-DEFINES = $(HW_DEFINE)
+TEST_DEFINE = $(addprefix -DTEST=, $(TEST))
+DEFINES = \
+	$(HW_DEFINE) \
+	$(TEST_DEFINE) \
 
 # Flags
 MCPU = cortex-m4
