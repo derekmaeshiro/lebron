@@ -1,6 +1,6 @@
 #ifndef IO_H
 #define IO_H
-
+#include <stdint.h>
 #include <stdbool.h>
 
 // TODO: Improve multiple HW handling
@@ -155,6 +155,12 @@ void io_configure(io_e io, const struct io_config *config);
 void io_set_select(io_e io, io_select_e select, io_alt_function_e alt_function);
 void io_set_resistor(io_e io, io_resistor_e resistor); // only applicable if pin is set to input
 void io_set_out(io_e io, io_out_e out);
+
+// ADC functions
+const io_e *io_adc_pins(uint8_t *cnt);
+bool io_supports_adc(io_e pin);
+uint8_t io_to_adc_idx(io_e io);
+
 io_in_e io_get_input(io_e io);
 
 #endif // IO_H

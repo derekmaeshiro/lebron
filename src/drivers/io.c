@@ -52,6 +52,16 @@ static void io_enable_clock(io_e io)
 /* GPIO Type Def Array */
 static GPIO_TypeDef *const gpio_ports[] = { GPIOA, GPIOB, GPIOC, GPIOD };
 
+/* Macro for ADC pin configuration */
+/* Maybe remove? */
+#define ADC_CONFIG \
+    { \
+        IO_SELECT_INPUT, \
+        IO_ALT_FUNCTION_0, \
+        IO_PULL_UP_ENABLED,\
+        IO_OUT_LOW \
+    }
+
 /* This array holds the initial configs of all IO pins. */
 /* Never: PA13, PA14 (debug) - don't touch */
 static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PORT] = {
@@ -79,8 +89,10 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                                  IO_OUT_LOW }, // PB12
     [IO_ANALOG_MUX_ENABLE_2] = { IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                                  IO_OUT_LOW }, // PB13
-    [IO_ANALOG_MUX_COM_1] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
-                              IO_OUT_LOW }, // PA0
+    // [IO_ANALOG_MUX_COM_1] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
+    //                           IO_OUT_LOW }, // PA0
+    // Substituted inline pin configuration with ADC config
+    [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0
     [IO_ANALOG_MUX_COM_2] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
                               IO_OUT_LOW }, // PA1
     [IO_PWM_DISTAL_INTERPHALANGEAL_JOINT] = { IO_SELECT_ALT, IO_ALT_FUNCTION_2,
@@ -115,6 +127,10 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                       IO_OUT_LOW }, // PC13, User LED
 #endif
 };
+
+// TODO: Assign pins here that will be reserved as ADC pins
+// Temporarily assigned one
+static const io_e io_adc_pins_arr[] = { IO_ANALOG_MUX_COM_1 };
 
 // Default config for all *other* pins
 const struct io_config io_default_unused = { IO_SELECT_ANALOG, IO_ALT_FUNCTION_0,
@@ -188,4 +204,45 @@ io_in_e io_get_input(io_e io)
 
     io_in_e state = (gpio->IDR & (0x1u << pin)) ? 1 : 0; // 1 if high, 0 if low
     return state;
+}
+
+// Helper method to retrieve pointer to array of ADC pins
+const io_e *io_adc_pins(uint8_t *cnt)
+{
+    *cnt = ARRAY_SIZE(io_adc_pins_arr);
+    return io_adc_pins_arr;
+}
+
+// Check if a pin is compatible with ADC
+bool io_supports_adc(io_e pin) {
+    switch (pin) {
+        case IO_PA0: 
+        case IO_PA1:  
+        case IO_PA2: 
+        case IO_PA3:
+        case IO_PA4:
+        case IO_PA5:
+        case IO_PA6:
+        case IO_PA7: 
+        case IO_PB0:  
+        case IO_PB1:  
+        case IO_PC0:  
+        case IO_PC1:  
+        case IO_PC2:  
+        case IO_PC3:  
+        case IO_PC4:  
+        case IO_PC5:  
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+// Helper method to retrieve ADC channel index given provided pin
+uint8_t io_to_adc_idx(io_e io)
+{
+    // Uncomment when asserts are implemented
+    // ASSERT(io_pin_supports_adc(io))
+    return io_pin_idx(io);
 }

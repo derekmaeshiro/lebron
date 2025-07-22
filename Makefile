@@ -45,6 +45,7 @@ SOURCES_WITH_HEADERS = \
 
 SOURCES = \
 		  src/main.c \
+		  src/drivers/adc.c \
 		  $(SOURCES_WITH_HEADERS)
 
 HEADERS = \
