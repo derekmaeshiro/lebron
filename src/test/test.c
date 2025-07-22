@@ -130,6 +130,39 @@ static void test_nucleo_io_pins_input(void)
     }
 }
 
+SUPPRESS_UNUSED
+static void pa_1_isr(void)
+{
+    led_set(LED_TEST, LED_STATE_ON);
+}
+
+SUPPRESS_UNUSED
+static void pa_10_isr(void)
+{
+    led_set(LED_TEST, LED_STATE_OFF);
+}
+
+SUPPRESS_UNUSED
+static void test_io_interrupt(void)
+{   
+    test_setup();
+    const struct io_config input_config = {
+        .select = IO_SELECT_INPUT,
+        .io_alt_function = IO_ALT_FUNCTION_0,
+        .resistor = IO_PULL_UP_ENABLED,
+        .out = IO_OUT_HIGH,
+    };
+
+    io_configure((io_e) IO_PA1, &input_config);
+    io_configure((io_e) IO_PA10, &input_config);
+    led_init();
+    io_configure_interrupt((io_e) IO_PA1, IO_TRIGGER_FALLING, pa_1_isr);
+    io_configure_interrupt((io_e) IO_PA10, IO_TRIGGER_FALLING, pa_10_isr);
+    io_enable_interrupt((io_e) IO_PA1);
+    io_enable_interrupt((io_e) IO_PA10);
+    while (1);
+}
+
 int main(void)
 {
     TEST();
