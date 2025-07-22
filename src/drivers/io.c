@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <stddef.h>
 
 /* Extracing pin and port using bitwise operations. STM32 uses 16 pins per port
  * Enum value can be seen as:
@@ -56,6 +57,16 @@ static void io_enable_clock(io_e io)
 
 /* GPIO Type Def Array */
 static GPIO_TypeDef *const gpio_ports[] = { GPIOA, GPIOB, GPIOC, GPIOD };
+
+/* In the STM32 series, ISR functions (interrupt handlers) are handled on a basis of pins per port.
+You can only have one interrupt configured for one pin in every port at a time. As a result, if you
+configure PA0 as an interrupt, you can't configure PB0, PC0, or PD0 as interrupts. Furthermore,
+interrupt handlers (what happens at an interrupt) are differentiated by the EXTI lines. EXTI0 to
+EXTI4 can each hold 1 interrupt handler. However, EXTI5-9 and EXTI10-15, the last two handlers, each
+only hold 1 interrupt handler. This means that the pins 5-9 and the pins 10-15 that are configured
+as interrupts must each share the same interrupt handler. As a result, there are, at a maximum, 7
+possible interrupt handlers and 16 possible configurable interrupt pins. */
+static isr_function isr_functions[7] = { NULL };
 
 /* This array holds the initial configs of all IO pins. */
 /* Never: PA13, PA14 (debug) - don't touch */
@@ -257,4 +268,185 @@ io_in_e io_get_input(io_e io)
 
     io_in_e state = (gpio->IDR & (0x1u << pin)) ? 1 : 0; // 1 if high, 0 if low
     return state;
+}
+
+static void io_clear_interrupt(io_e io)
+{
+    const uint8_t pin = io_pin_idx(io); // 5
+    EXTI->PR |= (1 << pin);
+}
+
+/* This function disables interrupts before selecting the edge becuase it might trigger an interrupt
+ * if you don't. */
+static void io_set_interrupt_trigger(io_e io, io_trigger_e trigger)
+{
+    const uint8_t pin = io_pin_idx(io); // 5
+
+    // // Disable interrupts
+    io_disable_interrupt(io);
+
+    // // Unmask line
+    EXTI->IMR |= (1 << pin);
+
+    switch (trigger) {
+    case IO_TRIGGER_RISING:
+        EXTI->RTSR |= (1 << pin);
+        break;
+    case IO_TRIGGER_FALLING:
+        EXTI->FTSR |= (1 << pin);
+        break;
+    case IO_TRIGGER_BOTH_EDGES:
+        EXTI->RTSR |= (1 << pin);
+        EXTI->FTSR |= (1 << pin);
+        break;
+    }
+
+    /* Clear interrupt because even if an interrupt is disabled, the flag is still set. */
+    io_clear_interrupt(io);
+}
+
+static void io_register_isr(io_e io, isr_function isr)
+{
+    uint8_t pin = io_pin_idx(io); // 0-15
+    uint8_t isr_idx = pin;
+    // pins 5-9 share isr_functions[5], pins 10-15 share isr_functions[6]
+    if (pin >= 5 && pin <= 9) {
+        isr_idx = 5;
+    } else if (pin >= 10 && pin <= 15) {
+        isr_idx = 6;
+    }
+
+    ASSERT(isr_functions[isr_idx] == NULL);
+    isr_functions[isr_idx] = isr;
+}
+
+void io_configure_exti_mapping(io_e io)
+{
+    uint8_t pin = io_pin_idx(io); // e.g., 0, 1, ...
+    uint8_t port = io_port(io); // 0 for A, 1 for B, 2 for C, etc.
+    uint8_t reg = pin / 4;
+    uint8_t shift = (pin % 4) * 4;
+    uint32_t mask = 0xF << shift;
+
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+    SYSCFG->EXTICR[reg] = (SYSCFG->EXTICR[reg] & ~mask) | (port << shift);
+}
+
+static io_e exti_to_io[16];
+
+void io_configure_interrupt(io_e io, io_trigger_e trigger, isr_function isr)
+{
+    uint8_t pin = io_pin_idx(io);
+    io_configure_exti_mapping(io);
+    exti_to_io[pin] = io;
+    io_set_interrupt_trigger(io, trigger);
+    io_register_isr(io, isr);
+}
+
+static inline void io_unregister_isr(io_e io)
+{
+    uint8_t pin = io_pin_idx(io); // 0-15
+    uint8_t isr_idx = pin;
+    // pins 5-9 share isr_functions[5], pins 10-15 share isr_functions[6]
+    if (pin >= 5 && pin <= 9) {
+        isr_idx = 5;
+    } else if (pin >= 10 && pin <= 15) {
+        isr_idx = 6;
+    }
+
+    isr_functions[isr_idx] = NULL;
+}
+
+void io_deconfigure_interrupt(io_e io)
+{
+    io_unregister_isr(io);
+    io_disable_interrupt(io);
+}
+
+void io_enable_interrupt(io_e io)
+{
+    const uint8_t pin = io_pin_idx(io); // 5
+    EXTI->IMR |= (1 << pin);
+    if (pin <= 4)
+        NVIC_EnableIRQ((IRQn_Type)(EXTI0_IRQn + pin));
+    else if (pin <= 9)
+        NVIC_EnableIRQ(EXTI9_5_IRQn);
+    else
+        NVIC_EnableIRQ(EXTI15_10_IRQn);
+}
+
+void io_disable_interrupt(io_e io)
+{
+    const uint8_t pin = io_pin_idx(io); // 5
+    EXTI->IMR &= ~(1 << pin);
+    if (pin <= 4)
+        NVIC_DisableIRQ((IRQn_Type)(EXTI0_IRQn + pin));
+    else if (pin <= 9)
+        NVIC_DisableIRQ(EXTI9_5_IRQn);
+    else
+        NVIC_DisableIRQ(EXTI15_10_IRQn);
+}
+
+static void io_isr(io_e io)
+{
+    const uint8_t pin = io_pin_idx(io);
+    uint8_t isr_idx = pin;
+    if (pin >= 5 && pin <= 9)
+        isr_idx = 5;
+    else if (pin >= 10 && pin <= 15)
+        isr_idx = 6;
+    if (EXTI->PR & (1 << pin)) {
+        if (isr_functions[isr_idx] != NULL) {
+            isr_functions[isr_idx]();
+        }
+        io_clear_interrupt(io);
+    }
+}
+
+io_e io_mapped_to_exti(uint8_t exti_line)
+{
+    return exti_to_io[exti_line];
+}
+
+void exti0_handler(void)
+{
+    io_isr(io_mapped_to_exti(0));
+}
+
+void exti1_handler(void)
+{
+    io_isr(io_mapped_to_exti(1));
+}
+
+void exti2_handler(void)
+{
+    io_isr(io_mapped_to_exti(2));
+}
+
+void exti3_handler(void)
+{
+    io_isr(io_mapped_to_exti(3));
+}
+
+void exti4_handler(void)
+{
+    io_isr(io_mapped_to_exti(4));
+}
+
+void exti9_5_handler(void)
+{
+    for (uint8_t pin = 5; pin <= 9; ++pin) {
+        if (EXTI->PR & (1 << pin)) {
+            io_isr(io_mapped_to_exti(pin));
+        }
+    }
+}
+
+void exti15_10_handler(void)
+{
+    for (uint8_t pin = 10; pin <= 15; ++pin) {
+        if (EXTI->PR & (1 << pin)) {
+            io_isr(io_mapped_to_exti(pin));
+        }
+    }
 }
