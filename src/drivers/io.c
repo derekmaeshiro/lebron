@@ -276,7 +276,8 @@ static void io_clear_interrupt(io_e io)
     EXTI->PR |= (1 << pin);
 }
 
-/* This function disables interrupts before selecting the edge becuase it might trigger an interrupt if you don't. */
+/* This function disables interrupts before selecting the edge becuase it might trigger an interrupt
+ * if you don't. */
 static void io_set_interrupt_trigger(io_e io, io_trigger_e trigger)
 {
     const uint8_t pin = io_pin_idx(io); // 5
@@ -287,17 +288,17 @@ static void io_set_interrupt_trigger(io_e io, io_trigger_e trigger)
     // // Unmask line
     EXTI->IMR |= (1 << pin);
 
-    switch(trigger) {
-        case IO_TRIGGER_RISING:
-            EXTI->RTSR |= (1 << pin);
-            break;
-        case IO_TRIGGER_FALLING:
-            EXTI->FTSR |= (1 << pin);
-            break;
-        case IO_TRIGGER_BOTH_EDGES:
-            EXTI->RTSR |= (1 << pin);
-            EXTI->FTSR |= (1 << pin);
-            break;
+    switch (trigger) {
+    case IO_TRIGGER_RISING:
+        EXTI->RTSR |= (1 << pin);
+        break;
+    case IO_TRIGGER_FALLING:
+        EXTI->FTSR |= (1 << pin);
+        break;
+    case IO_TRIGGER_BOTH_EDGES:
+        EXTI->RTSR |= (1 << pin);
+        EXTI->FTSR |= (1 << pin);
+        break;
     }
 
     /* Clear interrupt because even if an interrupt is disabled, the flag is still set. */
@@ -311,8 +312,7 @@ static void io_register_isr(io_e io, isr_function isr)
     // pins 5-9 share isr_functions[5], pins 10-15 share isr_functions[6]
     if (pin >= 5 && pin <= 9) {
         isr_idx = 5;
-    }
-    else if (pin >= 10 && pin <= 15) {
+    } else if (pin >= 10 && pin <= 15) {
         isr_idx = 6;
     }
 
@@ -320,16 +320,17 @@ static void io_register_isr(io_e io, isr_function isr)
     isr_functions[isr_idx] = isr;
 }
 
-void io_configure_exti_mapping(io_e io) {
+void io_configure_exti_mapping(io_e io)
+{
     uint8_t pin = io_pin_idx(io); // e.g., 0, 1, ...
-    uint8_t port = io_port(io);   // 0 for A, 1 for B, 2 for C, etc.
+    uint8_t port = io_port(io); // 0 for A, 1 for B, 2 for C, etc.
     uint8_t reg = pin / 4;
     uint8_t shift = (pin % 4) * 4;
     uint32_t mask = 0xF << shift;
 
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
     SYSCFG->EXTICR[reg] = (SYSCFG->EXTICR[reg] & ~mask) | (port << shift);
-}  
+}
 
 static io_e exti_to_io[16];
 
@@ -337,7 +338,7 @@ void io_configure_interrupt(io_e io, io_trigger_e trigger, isr_function isr)
 {
     uint8_t pin = io_pin_idx(io);
     io_configure_exti_mapping(io);
-    exti_to_io[pin] = io; 
+    exti_to_io[pin] = io;
     io_set_interrupt_trigger(io, trigger);
     io_register_isr(io, isr);
 }
@@ -349,8 +350,7 @@ static inline void io_unregister_isr(io_e io)
     // pins 5-9 share isr_functions[5], pins 10-15 share isr_functions[6]
     if (pin >= 5 && pin <= 9) {
         isr_idx = 5;
-    }
-    else if (pin >= 10 && pin <= 15) {
+    } else if (pin >= 10 && pin <= 15) {
         isr_idx = 6;
     }
 
@@ -391,8 +391,10 @@ static void io_isr(io_e io)
 {
     const uint8_t pin = io_pin_idx(io);
     uint8_t isr_idx = pin;
-    if (pin >= 5 && pin <= 9) isr_idx = 5;
-    else if (pin >= 10 && pin <= 15) isr_idx = 6;
+    if (pin >= 5 && pin <= 9)
+        isr_idx = 5;
+    else if (pin >= 10 && pin <= 15)
+        isr_idx = 6;
     if (EXTI->PR & (1 << pin)) {
         if (isr_functions[isr_idx] != NULL) {
             isr_functions[isr_idx]();
