@@ -168,6 +168,7 @@ SUPPRESS_UNUSED
 static void test_adc(void)
 {
     test_setup();
+    // Uncomment once UART is complete
     //trace_init();
     adc_init();
     while(1){

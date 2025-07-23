@@ -66,13 +66,13 @@ TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
 SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
 		  src/drivers/io.c \
+		  src/drivers/adc.c \
 		  src/drivers/mcu_init.c \
 		  src/common/assert_handler.c \
 
 ifndef TEST
 SOURCES = \
 		  src/main.c \
-		  src/drivers/adc.c \
 		  $(SOURCES_WITH_HEADERS)
 else
 SOURCES = \
