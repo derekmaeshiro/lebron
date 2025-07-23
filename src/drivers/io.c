@@ -82,14 +82,7 @@ possible interrupt handlers and 16 possible configurable interrupt pins. */
 
 /* Macro for ADC pin configuration */
 /* Maybe remove? */
-#define ADC_CONFIG \
-    { \
-        true, \
-        IO_SELECT_INPUT, \
-        IO_ALT_FUNCTION_0, \
-        IO_PULL_UP_ENABLED,\
-        IO_OUT_LOW \
-    }
+#define ADC_CONFIG { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED, IO_OUT_LOW }
 
 /* This array holds the initial configs of all IO pins. */
 /* Never: PA13, PA14 (debug) - don't touch */
@@ -488,14 +481,15 @@ const io_e *io_adc_pins(uint8_t *cnt)
 }
 
 // Check if a pin is compatible with ADC
-bool io_supports_adc(io_e pin) {
+bool io_supports_adc(io_e pin)
+{
     switch (pin) {
-        case IO_PA0: 
-        case IO_PA1:  
-            return true;
+    case IO_PA0:
+    case IO_PA1:
+        return true;
 
-        default:
-            return false;
+    default:
+        return false;
     }
 }
 

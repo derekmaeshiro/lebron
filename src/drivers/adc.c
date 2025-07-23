@@ -13,12 +13,10 @@ static uint8_t adc_pin_cnt = 1;
 static volatile adc_channel_values_t adc_dtc_block;
 static volatile adc_channel_values_t adc_dtc_block_cache;
 
-struct io_config default_adc_pin_config = {
-    .select = IO_SELECT_ANALOG,
-    .io_alt_function = IO_ALT_FUNCTION_0,
-    .resistor = IO_PULL_DOWN_ENABLED,
-    .out = IO_OUT_LOW
-};
+struct io_config default_adc_pin_config = { .select = IO_SELECT_ANALOG,
+                                            .io_alt_function = IO_ALT_FUNCTION_0,
+                                            .resistor = IO_PULL_DOWN_ENABLED,
+                                            .out = IO_OUT_LOW };
 
 static bool initialized = false;
 
@@ -30,14 +28,15 @@ static void adc_dma_init(void)
 
     // Disable stream before config
     DMA2_Stream0->CR &= ~DMA_SxCR_EN;
-    while (DMA2_Stream0->CR & DMA_SxCR_EN);
+    while (DMA2_Stream0->CR & DMA_SxCR_EN)
+        ;
 
     // Clear interrupt flags for Stream 0
-    DMA2->LIFCR |= DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 |
-                   DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0;
+    DMA2->LIFCR |= DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0
+        | DMA_LIFCR_CFEIF0;
 
     // Peripheral address (ADC data register)
-    DMA2_Stream0->PAR  = (uint32_t)&ADC1->DR;
+    DMA2_Stream0->PAR = (uint32_t)&ADC1->DR;
 
     // Memory address (our buffer)
     DMA2_Stream0->M0AR = (uint32_t)adc_dtc_block;
@@ -46,15 +45,14 @@ static void adc_dma_init(void)
     DMA2_Stream0->NDTR = adc_pin_cnt;
 
     // DMA config
-    DMA2_Stream0->CR =
-        (0 << DMA_SxCR_CHSEL_Pos) |     // Channel 0
-        DMA_SxCR_PL_1            |      // High priority
-        DMA_SxCR_MINC            |      // Memory increment
-        DMA_SxCR_MSIZE_0         |      // 16-bit memory
-        DMA_SxCR_PSIZE_0         |      // 16-bit peripheral
-        DMA_SxCR_TCIE            |      // Transfer complete interrupt
-        DMA_SxCR_CIRC            |      // Circular mode
-        DMA_SxCR_DIR_0;                 // Peripheral to memory
+    DMA2_Stream0->CR = (0 << DMA_SxCR_CHSEL_Pos) | // Channel 0
+        DMA_SxCR_PL_1 | // High priority
+        DMA_SxCR_MINC | // Memory increment
+        DMA_SxCR_MSIZE_0 | // 16-bit memory
+        DMA_SxCR_PSIZE_0 | // 16-bit peripheral
+        DMA_SxCR_TCIE | // Transfer complete interrupt
+        DMA_SxCR_CIRC | // Circular mode
+        DMA_SxCR_DIR_0; // Peripheral to memory
 
     // Enable DMA IRQ
     NVIC_EnableIRQ(DMA2_Stream0_IRQn);
@@ -63,7 +61,8 @@ static void adc_dma_init(void)
     DMA2_Stream0->CR |= DMA_SxCR_EN;
 }
 
-void adc_init(void){
+void adc_init(void)
+{
     // Uncomment when assert is complete
     // Ensure ADC is initialized only once
     // ASSERT(initialized);
@@ -71,14 +70,13 @@ void adc_init(void){
     // Retrieve list of ADC pins in io.c
     adc_pins = io_adc_pins(&adc_pin_cnt);
 
-     // Set IO config on each pin
+    // Set IO config on each pin
     for (uint8_t i = 0; i < adc_pin_cnt; i++) {
         io_e pin = adc_pins[i];
         io_configure(pin, &default_adc_pin_config);
     }
-    
 
-     // Enable ADC1 clock
+    // Enable ADC1 clock
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
     adc_dma_init();
@@ -124,7 +122,7 @@ void adc_init(void){
 
 /*
     Nsumo video had a similar interrupt function
-    TODO: Call function automatically when DMA scan finishes 
+    TODO: Call function automatically when DMA scan finishes
     This copies values from adc_dtc_block into a safe place (the cache)
 */
 void DMA2_Stream0_IRQHandler(void)
@@ -144,8 +142,6 @@ void DMA2_Stream0_IRQHandler(void)
     }
 }
 
-
-
 void adc_get_channel_values(adc_channel_values_t values)
 {
     // TODO: Include interrupts
@@ -163,7 +159,8 @@ void adc_get_channel_values(adc_channel_values_t values)
     Helper function to reset ADC
     Use when changing conversion modes or running into problems
 */
-void adc_reset(void) {
+void adc_reset(void)
+{
     // 1. Disable ADC1
     ADC1->CR2 &= ~ADC_CR2_ADON;
 
@@ -181,4 +178,3 @@ void adc_reset(void) {
     ADC1->SMPR1 = 0;
     ADC1->SMPR2 = 0;
 }
-
