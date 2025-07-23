@@ -154,6 +154,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
 
 // TODO: Assign pins here that will be reserved as ADC pins
 // Temporarily assigned one
+
 static const io_e io_adc_pins_arr[] = { IO_ANALOG_MUX_COM_1 };
 
 // Default config for all *other* pins
@@ -484,8 +485,9 @@ const io_e *io_adc_pins(uint8_t *cnt)
 bool io_supports_adc(io_e pin)
 {
     switch (pin) {
-    case IO_PA0:
-    case IO_PA1:
+    case IO_ANALOG_MUX_COM_1:
+        return true;
+    case IO_ANALOG_MUX_COM_2:
         return true;
 
     default:

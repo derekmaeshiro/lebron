@@ -71,6 +71,15 @@ typedef enum {
     IO_UART_RXD = IO_PA9, // Bluetooth Communication
     IO_UART_TXD = IO_PA10, // Bluetooth Communication
     IO_TEST_LED = IO_PC13, // Testing Blinky / Debugging
+    IO_ANALOG_MUX_S0 = IO_PB4, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_S1 = IO_PB5, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_S2 = IO_PB3, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_S3 = IO_PA15, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_ENABLE_1 = IO_PB12, // Analog Mux Enable Pin
+    IO_ANALOG_MUX_ENABLE_2 = IO_PB13, // Analog Mux Enable Pin
+    IO_ANALOG_MUX_COM_1 = IO_PA0, // Analog Mux Output Pin
+    IO_ANALOG_MUX_COM_2 = IO_PA1, // Analog Mux Output Pin
+
 #elif defined(ROBOTIC_ARM) // STM32F446RE
     IO_I2C_SCL = IO_PB8, // Servo drivers
     IO_I2C_SDA = IO_PB9, // Servo drivers
