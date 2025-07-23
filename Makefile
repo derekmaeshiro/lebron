@@ -1,3 +1,26 @@
+# Check arguments
+ifeq ($(HW), ROBOTIC_ARM) # HW argument
+TARGET_HW = robotic_arm
+STM_VERSION = STM32F446xx
+else ifeq ($(HW), ARM_SLEEVE)
+TARGET_HW = arm_sleeve
+STM_VERSION = STM32F411xE
+else ifeq ($(MAKECMDGOALS), clean)
+else ifeq ($(MAKECMDGOALS), format)
+# HW argument not required for clean, format
+else
+$(error "Must pass HW=ROBOTIC_ARM or HW=ARM_SLEEVE")
+endif
+TARGET_NAME = $(TARGET_HW)
+
+ifneq ($(TEST),) # TEST argument
+ifeq ($(findstring test_, $(TEST)), )
+$(error "TEST=$(TEST) is invalid (test function must start with test_)")
+else
+TARGET_NAME=$(TEST)
+endif
+endif
+
 # Directories
 
 # Tools path for Arm Directory 
@@ -15,7 +38,7 @@ ARMGCC_STANDARD_LIB_INCLUDE_DIRS = $(ARMGCC_LIB_GCC_DIR)/include \
 INCLUDE = $(ARMGCC_INCLUDE_DIR)
 INCLUDE_DIRS = $(INCLUDE)
 LIB_DIRS = $(INCLUDE)
-BUILD_DIR = build
+BUILD_DIR = build/$(TARGET_NAME)
 OBJ_DIR = $(BUILD_DIR)/obj
 BIN_DIR = $(BUILD_DIR)/bin
 
@@ -34,19 +57,30 @@ CC = $(ARMGCC_BIN_DIR)/arm-none-eabi-gcc
 RM = rm
 CPPCHECK = cppcheck
 FORMAT = clang-format
+SIZE = $(ARMGCC_BIN_DIR)/arm-none-eabi-size
+READELF = $(ARMGCC_BIN_DIR)/arm-none-eabi-readelf
 
 # Files
-TARGET = $(BIN_DIR)/blink
+TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
 
 SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
 		  src/drivers/io.c \
 		  src/drivers/mcu_init.c \
+		  src/common/assert_handler.c \
 
+ifndef TEST
 SOURCES = \
 		  src/main.c \
 		  src/drivers/adc.c \
 		  $(SOURCES_WITH_HEADERS)
+else
+SOURCES = \
+		  src/test/test.c \
+		  $(SOURCES_WITH_HEADERS)
+# Delete object file to force rebuild when changing test
+$(shell rm -f $(BUILD_DIR)/obj/src/test/test.o)
+endif
 
 HEADERS = \
 		  $(SOURCES_WITH_HEADERS:.c=.h) \
@@ -55,18 +89,24 @@ HEADERS = \
 OBJECT_NAMES = $(SOURCES:.c=.o)
 OBJECTS = $(patsubst %, $(OBJ_DIR)/%, $(OBJECT_NAMES))
 
+# Defines
+HW_DEFINE = $(addprefix -D, $(HW)) # e.g. -DROBOTIC_ARM or -DARM_SLEEVE
+TEST_DEFINE = $(addprefix -DTEST=, $(TEST))
+DEFINES = \
+	$(HW_DEFINE) \
+	$(TEST_DEFINE) \
+
 # Flags
 MCPU = cortex-m4
-STM_VERSION = DSTM32F446xx #DSTM32F411xE
 LINKER_SCRIPT = $(INCLUDE)/linker_script.ld
 STARTUP = $(INCLUDE)/startup.c
 
 # Warning flags
 WFLAGS = -Wall -Wextra -Werror -Wshadow
 # Compiler flags
-CFLAGS = -mcpu=$(MCPU) -mthumb -$(STM_VERSION) $(WFLAGS) $(addprefix -I, $(INCLUDE_DIRS)) -Og -g 
+CFLAGS = -mcpu=$(MCPU) -mthumb -D$(STM_VERSION) $(WFLAGS) $(addprefix -I, $(INCLUDE_DIRS)) $(DEFINES) -Og -g 
 # Linker flags
-LDFLAGS = -mcpu=$(MCPU) -mthumb -$(STM_VERSION) $(addprefix -L, $(LIB_DIRS)) -T$(LINKER_SCRIPT) $(addprefix -I, $(INCLUDE_DIRS))
+LDFLAGS = -mcpu=$(MCPU) -mthumb -D$(STM_VERSION) $(DEFINES) $(addprefix -L, $(LIB_DIRS)) -T$(LINKER_SCRIPT) $(addprefix -I, $(INCLUDE_DIRS))
 # Start up flags
 SUPFLAGS = $(STARTUP) -Wl,--gc-sections
 
@@ -102,11 +142,19 @@ cppcheck:
 		--suppress=unmatchedSuppression \
 		--suppress=staticFunction \
 		--suppress=*:$(INCLUDE)/* \
-		-$(STM_VERSION) \
+		-D$(STM_VERSION) \
 		-I $(INCLUDE_DIRS) \
 		-I $(ARMGCC_INCLUDE_DIR) \
 		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
-		$(SOURCES)
+		$(SOURCES) \
+		$(DEFINES)
 
 format:
 	@$(FORMAT) -i $(SOURCES) $(HEADERS)
+
+size: $(TARGET)
+	@$(SIZE) $(TARGET)
+
+symbols: $(TARGET)
+# List symbols table sorted by size
+	@$(READELF) -s $(TARGET) | sort -n -k3

@@ -3,10 +3,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// TODO: Improve multiple HW handling
-// #define ARM_SLEEVE
-#define ROBOTIC_ARM
-
 typedef enum {
     // ---- Port A ----
     IO_PA0, // PA0: A0, ADC1_IN0, TIM2_CH1, TIM5_CH1
@@ -141,8 +137,15 @@ typedef enum {
     IO_OUT_HIGH,
 } io_out_e;
 
+typedef enum {
+    IO_TRIGGER_RISING, // 0 -> 1
+    IO_TRIGGER_FALLING, // 1 -> 0
+    IO_TRIGGER_BOTH_EDGES, // 0 -> 1 and 1 -> 0
+} io_trigger_e;
+
 struct io_config
 {
+    bool used;
     io_select_e select;
     io_alt_function_e io_alt_function;
     io_resistor_e resistor;
@@ -152,6 +155,8 @@ struct io_config
 // TODO: functions
 void io_init(void);
 void io_configure(io_e io, const struct io_config *config);
+void io_get_current_config(io_e io, struct io_config *current_config);
+bool io_config_compare(const struct io_config *cfg1, const struct io_config *cfg2);
 void io_set_select(io_e io, io_select_e select, io_alt_function_e alt_function);
 void io_set_resistor(io_e io, io_resistor_e resistor); // only applicable if pin is set to input
 void io_set_out(io_e io, io_out_e out);
@@ -162,5 +167,11 @@ bool io_supports_adc(io_e pin);
 uint8_t io_to_adc_idx(io_e io);
 
 io_in_e io_get_input(io_e io);
+
+typedef void (*isr_function)(void);
+void io_configure_interrupt(io_e io, io_trigger_e trigger, isr_function isr);
+void io_deconfigure_interrupt(io_e io);
+void io_enable_interrupt(io_e io);
+void io_disable_interrupt(io_e io);
 
 #endif // IO_H
