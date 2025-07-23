@@ -1,18 +1,19 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stm32f4xx.h>
+#include <stm32f446xx.h>
 
 #include "adc.h"
 #include "io.h"
 
-static uint16_t *adc_pins;
+static const io_e *adc_pins;
 // Update based on number of pins being used
-static uint16_t adc_pin_cnt = 1;
+static uint8_t adc_pin_cnt = 1;
 
 static volatile adc_channel_values_t adc_dtc_block;
 static volatile adc_channel_values_t adc_dtc_block_cache;
-static uint8_t dtc_channel_cnt;
 
-static struct io_config default_adc_pin_config = {
+struct io_config default_adc_pin_config = {
     .select = IO_SELECT_ANALOG,
     .io_alt_function = IO_ALT_FUNCTION_0,
     .resistor = IO_PULL_DOWN_ENABLED,
@@ -20,6 +21,48 @@ static struct io_config default_adc_pin_config = {
 };
 
 static bool initialized = false;
+
+// Setup DMA stream to write ADC values into adc_dtc_block
+static void adc_dma_init(void)
+{
+    // Enable DMA2 clock
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+
+    // Disable stream before config
+    DMA2_Stream0->CR &= ~DMA_SxCR_EN;
+    while (DMA2_Stream0->CR & DMA_SxCR_EN);
+
+    // Clear interrupt flags for Stream 0
+    DMA2->LIFCR |= DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 |
+                   DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0;
+
+    // Peripheral address (ADC data register)
+    DMA2_Stream0->PAR  = (uint32_t)&ADC1->DR;
+
+    // Memory address (our buffer)
+    DMA2_Stream0->M0AR = (uint32_t)adc_dtc_block;
+
+    // Number of conversions
+    DMA2_Stream0->NDTR = adc_pin_cnt;
+
+    // DMA config
+    DMA2_Stream0->CR =
+        (0 << DMA_SxCR_CHSEL_Pos) |     // Channel 0
+        DMA_SxCR_PL_1            |      // High priority
+        DMA_SxCR_MINC            |      // Memory increment
+        DMA_SxCR_MSIZE_0         |      // 16-bit memory
+        DMA_SxCR_PSIZE_0         |      // 16-bit peripheral
+        DMA_SxCR_TCIE            |      // Transfer complete interrupt
+        DMA_SxCR_CIRC            |      // Circular mode
+        DMA_SxCR_DIR_0;                 // Peripheral to memory
+
+    // Enable DMA IRQ
+    NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+    // Enable stream
+    DMA2_Stream0->CR |= DMA_SxCR_EN;
+}
+
 void adc_init(void){
     // Uncomment when assert is complete
     // Ensure ADC is initialized only once
@@ -105,55 +148,15 @@ void DMA2_Stream0_IRQHandler(void)
 
 void adc_get_channel_values(adc_channel_values_t values)
 {
-    __disable_irq();  // Disable global interrupts
+    // TODO: Include interrupts
+    // __disable_irq();  // Disable global interrupts
 
     for (uint8_t i = 0; i < adc_pin_cnt; i++) {
         uint8_t channel_idx = io_to_adc_idx(adc_pins[i]);
         values[channel_idx] = adc_dtc_block_cache[i];
     }
 
-    __enable_irq();  // Re-enable interrupts
-}
-
-// Setup DMA stream to write ADC values into adc_dtc_block
-static void adc_dma_init(void)
-{
-    // Enable DMA2 clock
-    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
-
-    // Disable stream before config
-    DMA2_Stream0->CR &= ~DMA_SxCR_EN;
-    while (DMA2_Stream0->CR & DMA_SxCR_EN);
-
-    // Clear interrupt flags for Stream 0
-    DMA2->LIFCR |= DMA_LIFCR_CTCIF0 | DMA_LIFCR_HTIF0 |
-                   DMA_LIFCR_TEIF0 | DMA_LIFCR_DMEIF0 | DMA_LIFCR_FEIF0;
-
-    // Peripheral address (ADC data register)
-    DMA2_Stream0->PAR  = (uint32_t)&ADC1->DR;
-
-    // Memory address (our buffer)
-    DMA2_Stream0->M0AR = (uint32_t)adc_dtc_block;
-
-    // Number of conversions
-    DMA2_Stream0->NDTR = adc_pin_cnt;
-
-    // DMA config
-    DMA2_Stream0->CR =
-        (0 << DMA_SxCR_CHSEL_Pos) |     // Channel 0
-        DMA_SxCR_PL_1            |      // High priority
-        DMA_SxCR_MINC            |      // Memory increment
-        DMA_SxCR_MSIZE_0         |      // 16-bit memory
-        DMA_SxCR_PSIZE_0         |      // 16-bit peripheral
-        DMA_SxCR_TCIE            |      // Transfer complete interrupt
-        DMA_SxCR_CIRC            |      // Circular mode
-        DMA_SxCR_DIR_0;                 // Peripheral to memory
-
-    // Enable DMA IRQ
-    NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-
-    // Enable stream
-    DMA2_Stream0->CR |= DMA_SxCR_EN;
+    // __enable_irq();  // Re-enable interrupts
 }
 
 /*

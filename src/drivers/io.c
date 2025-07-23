@@ -76,12 +76,15 @@ EXTI4 can each hold 1 interrupt handler. However, EXTI5-9 and EXTI10-15, the las
 only hold 1 interrupt handler. This means that the pins 5-9 and the pins 10-15 that are configured
 as interrupts must each share the same interrupt handler. As a result, there are, at a maximum, 7
 possible interrupt handlers and 16 possible configurable interrupt pins. */
-static isr_function isr_functions[7] = { NULL };
+
+// TODO: This had an error. I commented for now.
+// static isr_function isr_functions[7] = { NULL };
 
 /* Macro for ADC pin configuration */
 /* Maybe remove? */
 #define ADC_CONFIG \
     { \
+        true, \
         IO_SELECT_INPUT, \
         IO_ALT_FUNCTION_0, \
         IO_PULL_UP_ENABLED,\
@@ -119,7 +122,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
     //                           IO_OUT_LOW }, // PA0
     // Substituted inline pin configuration with ADC config
     [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0
-    [IO_ANALOG_MUX_COM_2] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
+    [IO_ANALOG_MUX_COM_2] = { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
                               IO_OUT_LOW }, // PA1
     [IO_PWM_DISTAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
                                               IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA6 TIM?
@@ -489,20 +492,6 @@ bool io_supports_adc(io_e pin) {
     switch (pin) {
         case IO_PA0: 
         case IO_PA1:  
-        case IO_PA2: 
-        case IO_PA3:
-        case IO_PA4:
-        case IO_PA5:
-        case IO_PA6:
-        case IO_PA7: 
-        case IO_PB0:  
-        case IO_PB1:  
-        case IO_PC0:  
-        case IO_PC1:  
-        case IO_PC2:  
-        case IO_PC3:  
-        case IO_PC4:  
-        case IO_PC5:  
             return true;
 
         default:

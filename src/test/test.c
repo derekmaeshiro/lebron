@@ -3,6 +3,7 @@
 #include "../drivers/led.h"
 #include "../drivers/io.h"
 #include "../drivers/mcu_init.h"
+#include "../drivers/adc.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 
@@ -161,6 +162,23 @@ static void test_io_interrupt(void)
     io_enable_interrupt((io_e) IO_PA1);
     io_enable_interrupt((io_e) IO_PA10);
     while (1);
+}
+
+SUPPRESS_UNUSED
+static void test_adc(void)
+{
+    test_setup();
+    trace_init();
+    adc_init();
+    while(1){
+        adc_channel_values_t values;
+        adc_get_channel_values(values);
+        for(uint8_t i=0; i<ADC_CHANNEL_COUNT; i++){
+            // TODO: Uncomment once UART is complete
+            // TRACE("ADC ch %u: %u", i, values[i]);
+        }
+        BUSY_WAIT_ms(1000);
+    }
 }
 
 int main(void)
