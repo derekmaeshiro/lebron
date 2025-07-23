@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stm32f4xx.h>
-#include <stm32f446xx.h>
 
 #include "adc.h"
 #include "io.h"
