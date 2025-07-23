@@ -168,7 +168,7 @@ SUPPRESS_UNUSED
 static void test_adc(void)
 {
     test_setup();
-    trace_init();
+    //trace_init();
     adc_init();
     while(1){
         adc_channel_values_t values;
