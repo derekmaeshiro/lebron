@@ -255,7 +255,7 @@ static void test_uart_put_string(void)
     uart_init();
 
     while (1) {
-        uart_print_interrupt("Hello World\n");
+        uart_print_interrupt("ANgry brids\n");
         BUSY_WAIT_ms(250);
     }
 

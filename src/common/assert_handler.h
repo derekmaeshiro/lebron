@@ -1,4 +1,5 @@
 #ifndef ASSERT_HANDLER_H
+#define ASSERT_HANDLER_H
 
 // Assert implementation suitable for a microcontroller
 
@@ -9,15 +10,14 @@
         }                                                                                          \
     } while (0)
 
-#define ASSERT_INTERRUPT(expression)
-do {
-    if (!(expression)) {
-        while (1)
-            ;
-    }
-} while (0)
+#define ASSERT_INTERRUPT(expression)                                                               \
+    do {                                                                                           \
+        if (!(expression)) {                                                                       \
+            while (1)                                                                              \
+                ;                                                                                  \
+        }                                                                                          \
+    } while (0)
 
-    void
-    assert_handler(void);
+void assert_handler(void);
 
 #endif // ASSERT_HANDLER_H

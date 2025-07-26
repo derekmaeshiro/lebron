@@ -60,10 +60,7 @@ static void uart_set_baudrate(USART_TypeDef *USARTx, uint32_t pclk, uint32_t bau
     uint32_t usartdiv_x16 = (pclk + (baud / 2)) / baud;
     uint32_t mantissa = usartdiv_x16 / 16;
     uint32_t fraction = usartdiv_x16 % 16;
-    if (fraction >= 16) {
-        mantissa++;
-        fraction = 0;
-    }
+
     USARTx->BRR = (mantissa << 4) | (fraction & 0xF);
 }
 
