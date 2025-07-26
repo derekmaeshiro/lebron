@@ -3,6 +3,7 @@
 #include "../drivers/led.h"
 #include "../drivers/io.h"
 #include "../drivers/mcu_init.h"
+#include "../drivers/uart.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 
@@ -161,6 +162,103 @@ static void test_io_interrupt(void)
     io_enable_interrupt((io_e) IO_PA1);
     io_enable_interrupt((io_e) IO_PA10);
     while (1);
+}
+
+SUPPRESS_UNUSED
+static void test_uart_put_char_polling(void) 
+{
+    test_setup();
+    mcu_init();
+    uart_init();
+
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('\n');
+}
+
+SUPPRESS_UNUSED
+static void test_uart_put_char_interrupt(void) 
+{
+    test_setup();
+    mcu_init();
+    uart_init();
+
+    // uart_putchar_interrupt('a');
+    // uart_putchar_interrupt('b');
+    // uart_putchar_interrupt('c');
+    // uart_putchar_interrupt('d');
+    // uart_putchar_interrupt('e');
+
+    // const char *msg = "apples\n";
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+
+    while (1) {
+        uart_putchar_interrupt('H');
+        uart_putchar_interrupt('e');
+        uart_putchar_interrupt('l');
+        uart_putchar_interrupt('l');
+        uart_putchar_interrupt('o');
+        uart_putchar_interrupt(' ');
+        uart_putchar_interrupt('W');
+        uart_putchar_interrupt('o');
+        uart_putchar_interrupt('r');
+        uart_putchar_interrupt('l');
+        uart_putchar_interrupt('d');
+        uart_putchar_interrupt('\n');
+    }
+
+    // while (1) {}
+
+    // const char *msg = "apples\n";
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+    
+    while (1) { }
+}
+
+SUPPRESS_UNUSED
+static void test_uart_put_string(void) 
+{
+    test_setup();
+    mcu_init();
+    uart_init();
+
+    while (1) {
+        uart_print_interrupt("ANgry brids\n");
+        BUSY_WAIT_ms(250);
+    }
+
 }
 
 int main(void)
