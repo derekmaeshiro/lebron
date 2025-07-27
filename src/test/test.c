@@ -297,5 +297,7 @@ static void test_trace(void)
 int main(void)
 {
     TEST();
+    while (1) {}
+
     ASSERT(0);
 }

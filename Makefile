@@ -62,6 +62,7 @@ CPPCHECK = cppcheck
 FORMAT = clang-format
 SIZE = $(ARMGCC_BIN_DIR)/arm-none-eabi-size
 READELF = $(ARMGCC_BIN_DIR)/arm-none-eabi-readelf
+ADDR2LINE = $(ARMGCC_BIN_DIR)/arm-none-eabi-addr2line
 
 # Files
 TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
@@ -170,3 +171,6 @@ size: $(TARGET)
 symbols: $(TARGET)
 # List symbols table sorted by size
 	@$(READELF) -s $(TARGET) | sort -n -k3
+
+addr2line: $(TARGET)
+	@$(ADDR2LINE) -e $(TARGET) $(ADDR)
