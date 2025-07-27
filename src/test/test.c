@@ -6,6 +6,8 @@
 #include "../drivers/uart.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
+#include "../common/trace.h"
+#include "external/printf/printf.h"
 
 SUPPRESS_UNUSED
 static void test_setup(void)
@@ -213,18 +215,18 @@ static void test_uart_put_char_interrupt(void)
     // }
 
     while (1) {
-        uart_putchar_interrupt('H');
-        uart_putchar_interrupt('e');
-        uart_putchar_interrupt('l');
-        uart_putchar_interrupt('l');
-        uart_putchar_interrupt('o');
-        uart_putchar_interrupt(' ');
-        uart_putchar_interrupt('W');
-        uart_putchar_interrupt('o');
-        uart_putchar_interrupt('r');
-        uart_putchar_interrupt('l');
-        uart_putchar_interrupt('d');
-        uart_putchar_interrupt('\n');
+        // uart_putchar_interrupt('H');
+        // uart_putchar_interrupt('e');
+        // uart_putchar_interrupt('l');
+        // uart_putchar_interrupt('l');
+        // uart_putchar_interrupt('o');
+        // uart_putchar_interrupt(' ');
+        // uart_putchar_interrupt('W');
+        // uart_putchar_interrupt('o');
+        // uart_putchar_interrupt('r');
+        // uart_putchar_interrupt('l');
+        // uart_putchar_interrupt('d');
+        // uart_putchar_interrupt('\n');
     }
 
     // while (1) {}
@@ -257,6 +259,37 @@ static void test_uart_put_string(void)
     while (1) {
         uart_print_interrupt("ANgry brids\n");
         BUSY_WAIT_ms(250);
+    }
+
+}
+
+SUPPRESS_UNUSED
+static void test_uart(void) 
+{
+    test_setup();
+    uart_init();
+    while (1) {
+        _putchar('D');
+        _putchar('E');
+        _putchar('R');
+        _putchar('E');
+        _putchar('K');
+        _putchar('!');
+        _putchar('\n');
+        BUSY_WAIT_ms(100);
+    }
+}
+
+SUPPRESS_UNUSED
+static void test_trace(void) 
+{
+    test_setup();   
+    trace_init();
+    
+    while (1) {
+        //printf("derek maeshiro %d\n", 2025);
+        TRACE("Artful bytes %d", 2025);
+        BUSY_WAIT_ms(1000);
     }
 
 }

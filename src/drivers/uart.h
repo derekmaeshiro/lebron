@@ -5,7 +5,7 @@
 
 void uart_init(void);
 void uart_putchar_polling(char c);
-void uart_putchar_interrupt(char c);
+void _putchar(char c);
 void uart_print_interrupt(const char *string);
 
 #endif // UART_H
