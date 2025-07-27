@@ -64,10 +64,7 @@ static void uart_set_baudrate(USART_TypeDef *USARTx, uint32_t pclk, uint32_t bau
     USARTx->BRR = (mantissa << 4) | (fraction & 0xF);
 }
 
-/* For UART, we'll be following a 10 bit configuration that consists of 1 start bit, 8 data bits, no
- * parity bit, and 1 stop bit. */
-
-void uart_init(void)
+static void uart_configure(void)
 {
     // 1. Enable the UART Peripheral Clock
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
@@ -94,6 +91,17 @@ void uart_init(void)
 
     // 8. Enable NVIC interrupt for USART1
     NVIC_EnableIRQ(USART1_IRQn);
+}
+
+static bool initialized = false;
+
+/* For UART, we'll be following a 10 bit configuration that consists of 1 start bit, 8 data bits, no
+ * parity bit, and 1 stop bit. */
+
+void uart_init(void)
+{
+    ASSERT(!initialized);
+    uart_configure();
 
     // Interrupts triggers when TX buffer is empty, which it is after boot, so clear it here.
     uart_tx_clear_interrupt();
@@ -141,6 +149,21 @@ void uart_print_interrupt(const char *string)
     int i = 0;
     while (string[i] != '\0') {
         _putchar(string[i]);
+        i++;
+    }
+}
+
+void uart_init_assert(void)
+{
+    uart_tx_disable_interrupt();
+    uart_configure();
+}
+
+void uart_trace_assert(const char *string)
+{
+    int i = 0;
+    while (string[i] != '\0') {
+        uart_putchar_polling(string[i]);
         i++;
     }
 }
