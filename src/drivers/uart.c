@@ -115,7 +115,7 @@ void uart_putchar_polling(char c)
     }
 }
 
-void uart_putchar_interrupt(char c)
+void _putchar(char c)
 {
     count++;
 
@@ -132,7 +132,7 @@ void uart_putchar_interrupt(char c)
     uart_tx_enable_interrupt();
 
     if (c == '\n') {
-        uart_putchar_interrupt('\r');
+        _putchar('\r');
     }
 }
 
@@ -140,7 +140,7 @@ void uart_print_interrupt(const char *string)
 {
     int i = 0;
     while (string[i] != '\0') {
-        uart_putchar_interrupt(string[i]);
+        _putchar(string[i]);
         i++;
     }
 }
