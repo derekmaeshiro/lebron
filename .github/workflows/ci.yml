@@ -36,6 +36,9 @@ jobs:
         run: |
           TOOLS_OPEN_OCD_DIR_PATH=/usr/share/openocd/scripts make format && git diff --quiet
         working-directory: ${{ github.workspace }}
+        
+      - name: Check for printf.h
+        run: ls -l external/printf/printf.h || (echo "File not found!" && exit 1)
 
       - name: Cppcheck
         run: |
