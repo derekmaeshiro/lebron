@@ -66,6 +66,7 @@ TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
 SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
 		  src/drivers/io.c \
+		  src/drivers/pwm.c \
 		  src/drivers/mcu_init.c \
 		  src/common/assert_handler.c \
 

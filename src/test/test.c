@@ -2,6 +2,7 @@
 // #include "../include/stm32f446xx.h" // Include the device-specific header
 #include "../drivers/led.h"
 #include "../drivers/io.h"
+#include "../drivers/pwm.h"
 #include "../drivers/mcu_init.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
@@ -161,6 +162,24 @@ static void test_io_interrupt(void)
     io_enable_interrupt((io_e) IO_PA1);
     io_enable_interrupt((io_e) IO_PA10);
     while (1);
+}
+
+SUPPRESS_UNUSED
+static void test_pwm(void){
+    test_setup();
+    // Uncomment when merged with uart branch
+    // trace_init();
+    pwm_init();
+    int duty_cycles[] = {100, 28, 54, 16, 22, 88};
+    while(1){
+        for(uint8_t i=0; i<ARRAY_SIZE(duty_cycles); i++){
+            pwm_set_duty_cycle(PWM_DISTAL_INTERPHALANGEAL_JOINT, duty_cycles[i]);
+            pwm_set_duty_cycle(PWM_PROXIMAL_INTERPHALANGEAL_JOINT, duty_cycles[i]);
+            pwm_set_duty_cycle(PWM_METACARPOPHALANGEAL_JOINT_1, duty_cycles[i]);
+            pwm_set_duty_cycle(PWM_METACARPOPHALANGEAL_JOINT_2, duty_cycles[i]);
+            BUSY_WAIT_ms(3000);
+        }
+    }
 }
 
 int main(void)
