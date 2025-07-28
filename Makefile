@@ -36,7 +36,10 @@ ARMGCC_STANDARD_LIB_INCLUDE_DIRS = $(ARMGCC_LIB_GCC_DIR)/include \
 
 # include directory features files taken from STM32CubeIDE
 INCLUDE = $(ARMGCC_INCLUDE_DIR)
-INCLUDE_DIRS = $(INCLUDE)
+INCLUDE_DIRS = $(INCLUDE) \
+				./src \
+				./external/ \
+				./
 LIB_DIRS = $(INCLUDE)
 BUILD_DIR = build/$(TARGET_NAME)
 OBJ_DIR = $(BUILD_DIR)/obj
@@ -59,6 +62,7 @@ CPPCHECK = cppcheck
 FORMAT = clang-format
 SIZE = $(ARMGCC_BIN_DIR)/arm-none-eabi-size
 READELF = $(ARMGCC_BIN_DIR)/arm-none-eabi-readelf
+ADDR2LINE = $(ARMGCC_BIN_DIR)/arm-none-eabi-addr2line
 
 # Files
 TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
@@ -69,7 +73,11 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/pwm.c \
 		  src/drivers/servo.c \
 		  src/drivers/mcu_init.c \
+		  src/drivers/uart.c \
+		  src/common/ring_buffer.c \
+		  src/common/trace.c \
 		  src/common/assert_handler.c \
+		  external/printf/printf.c \
 
 ifndef TEST
 SOURCES = \
@@ -96,6 +104,13 @@ TEST_DEFINE = $(addprefix -DTEST=, $(TEST))
 DEFINES = \
 	$(HW_DEFINE) \
 	$(TEST_DEFINE) \
+	-DPRINTF_INCLUDE_CONFIG_H \
+
+IGNORE_FILES_FORMAT_CPPCHECK = \
+	external/printf/printf.h \
+	external/printf/printf.c
+SOURCES_FORMAT_CPPCHECK = $(filter-out $(IGNORE_FILES_FORMAT_CPPCHECK), $(SOURCES))
+HEADERS_FORMAT = $(filter-out $(IGNORE_FILES_FORMAT_CPPCHECK), $(HEADERS))
 
 # Flags
 MCPU = cortex-m4
@@ -144,14 +159,13 @@ cppcheck:
 		--suppress=staticFunction \
 		--suppress=*:$(INCLUDE)/* \
 		-D$(STM_VERSION) \
-		-I $(INCLUDE_DIRS) \
+		$(addprefix -I, $(INCLUDE_DIRS)) \
 		-I $(ARMGCC_INCLUDE_DIR) \
 		$(addprefix -I, $(ARMGCC_STANDARD_LIB_INCLUDE_DIRS)) \
-		$(SOURCES) \
-		$(DEFINES)
-
+		$(SOURCES_FORMAT_CPPCHECK) \
+		$(DEFINES) 
 format:
-	@$(FORMAT) -i $(SOURCES) $(HEADERS)
+	@$(FORMAT) -i $(SOURCES_FORMAT_CPPCHECK) $(HEADERS_FORMAT)
 
 size: $(TARGET)
 	@$(SIZE) $(TARGET)
@@ -159,3 +173,6 @@ size: $(TARGET)
 symbols: $(TARGET)
 # List symbols table sorted by size
 	@$(READELF) -s $(TARGET) | sort -n -k3
+
+addr2line: $(TARGET)
+	@$(ADDR2LINE) -e $(TARGET) $(ADDR)
