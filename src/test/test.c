@@ -169,6 +169,7 @@ static void test_pwm(void){
     test_setup();
     // Uncomment when merged with uart branch
     // trace_init();
+    #if defined ROBOTIC_ARM
     pwm_init();
     int duty_cycles[] = {100, 28, 54, 16, 22, 88};
     while(1){
@@ -180,6 +181,7 @@ static void test_pwm(void){
             BUSY_WAIT_ms(3000);
         }
     }
+    #endif
 }
 
 int main(void)
