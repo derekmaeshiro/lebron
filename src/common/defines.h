@@ -9,7 +9,7 @@
 #define SUPPRESS_UNUSED __attribute__((unused))
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
-#define TIMER_PRESCALER 83
+#define TIMER_PRESCALER 167
 #define TIMER_TICK_FREQ (SYSTEM_CORE_CLOCK / (TIMER_PRESCALER + 1))
 
 #define BUSY_WAIT_ms(ms)                                                                           \
