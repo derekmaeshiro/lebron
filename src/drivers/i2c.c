@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <stdbool.h>    
+#include <stdbool.h>
 #include <stm32f4xx.h>
 
 // --- State/context ---
@@ -19,7 +19,8 @@ typedef enum {
     I2C_ERROR,
 } i2c_state_t;
 
-typedef struct {
+typedef struct
+{
     uint8_t slave_addr;
     const uint8_t *wbuf;
     uint8_t wlen;
@@ -31,7 +32,7 @@ typedef struct {
     i2c_state_t state;
 } i2c_ctx_t;
 
-static volatile i2c_ctx_t ctx = {0};
+static volatile i2c_ctx_t ctx = { 0 };
 
 // --- Initialization ---
 void i2c_init(void)
@@ -52,14 +53,16 @@ void i2c_init(void)
     NVIC_EnableIRQ(I2C1_ER_IRQn);
 }
 
-bool i2c_is_busy(void) {
+bool i2c_is_busy(void)
+{
     return ctx.state != I2C_IDLE;
 }
 
 // --- Write ---
 bool i2c_write(uint8_t addr, const uint8_t *data, uint8_t len, i2c_callback_t cb)
 {
-    if (ctx.state != I2C_IDLE) return false;
+    if (ctx.state != I2C_IDLE)
+        return false;
 
     ctx.slave_addr = addr;
     ctx.wbuf = data;
@@ -70,7 +73,8 @@ bool i2c_write(uint8_t addr, const uint8_t *data, uint8_t len, i2c_callback_t cb
     ctx.cb = cb;
     ctx.state = I2C_WRITE_ADDR;
 
-    while (I2C1->SR2 & I2C_SR2_BUSY); // optional: wait for bus ready
+    while (I2C1->SR2 & I2C_SR2_BUSY)
+        ; // optional: wait for bus ready
     I2C1->CR1 |= I2C_CR1_START;
 
     return true;
@@ -79,7 +83,8 @@ bool i2c_write(uint8_t addr, const uint8_t *data, uint8_t len, i2c_callback_t cb
 // --- Read ---
 bool i2c_read(uint8_t addr, uint8_t *data, uint8_t len, i2c_callback_t cb)
 {
-    if (ctx.state != I2C_IDLE) return false;
+    if (ctx.state != I2C_IDLE)
+        return false;
 
     ctx.slave_addr = addr;
     ctx.wbuf = NULL;
@@ -90,8 +95,9 @@ bool i2c_read(uint8_t addr, uint8_t *data, uint8_t len, i2c_callback_t cb)
     ctx.cb = cb;
     ctx.state = I2C_READ_ADDR;
 
-    while (I2C1->SR2 & I2C_SR2_BUSY); // optional: wait for bus ready
-    I2C1->CR1 |= I2C_CR1_ACK;         // enable ACK for multi-byte reads
+    while (I2C1->SR2 & I2C_SR2_BUSY)
+        ; // optional: wait for bus ready
+    I2C1->CR1 |= I2C_CR1_ACK; // enable ACK for multi-byte reads
     I2C1->CR1 |= I2C_CR1_START;
 
     return true;
@@ -117,7 +123,8 @@ void i2c1_ev_handler(void)
             if (ctx.wlen == 0) {
                 I2C1->CR1 |= I2C_CR1_STOP;
                 ctx.state = I2C_DONE;
-                if (ctx.cb) ctx.cb(0);
+                if (ctx.cb)
+                    ctx.cb(0);
                 ctx.state = I2C_IDLE;
                 return;
             }
@@ -128,7 +135,8 @@ void i2c1_ev_handler(void)
             } else {
                 I2C1->CR1 |= I2C_CR1_STOP;
                 ctx.state = I2C_DONE;
-                if (ctx.cb) ctx.cb(0);
+                if (ctx.cb)
+                    ctx.cb(0);
                 ctx.state = I2C_IDLE;
             }
         }
@@ -161,7 +169,8 @@ void i2c1_ev_handler(void)
             if (ctx.rindex == ctx.rlen) {
                 I2C1->CR1 |= I2C_CR1_STOP;
                 ctx.state = I2C_DONE;
-                if (ctx.cb) ctx.cb(0);
+                if (ctx.cb)
+                    ctx.cb(0);
                 ctx.state = I2C_IDLE;
                 I2C1->CR1 |= I2C_CR1_ACK; // re-enable ACK for future reads
             }
@@ -179,14 +188,19 @@ void i2c1_er_handler(void)
     uint32_t sr1 = I2C1->SR1;
 
     // Just read SR1 to clear error flags
-    if (sr1 & I2C_SR1_BERR)  (void)I2C1->SR1;
-    if (sr1 & I2C_SR1_ARLO)  (void)I2C1->SR1;
-    if (sr1 & I2C_SR1_AF)    (void)I2C1->SR1;
-    if (sr1 & I2C_SR1_OVR)   (void)I2C1->SR1;
+    if (sr1 & I2C_SR1_BERR)
+        (void)I2C1->SR1;
+    if (sr1 & I2C_SR1_ARLO)
+        (void)I2C1->SR1;
+    if (sr1 & I2C_SR1_AF)
+        (void)I2C1->SR1;
+    if (sr1 & I2C_SR1_OVR)
+        (void)I2C1->SR1;
 
     I2C1->CR1 |= I2C_CR1_STOP;
 
     ctx.state = I2C_ERROR;
-    if (ctx.cb) ctx.cb(-1);
+    if (ctx.cb)
+        ctx.cb(-1);
     ctx.state = I2C_IDLE;
 }
