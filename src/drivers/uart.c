@@ -50,10 +50,6 @@ void usart1_handler(void)
     }
 }
 
-#define PCLK1 42000000U
-#define PCLK2 84000000U
-#define BAUD 115200U
-
 static void uart_set_baudrate(USART_TypeDef *USARTx, uint32_t pclk, uint32_t baud)
 {
     // For OVER8=0 (default)
@@ -120,6 +116,15 @@ void uart_putchar_polling(char c)
     // If LF is sent, send CR before it for CRLF (Windows-style line endings)
     if (c == '\n') {
         uart_putchar_polling('\r'); // CR before LF
+    }
+}
+
+void uart_print_polling(const char *string)
+{
+    int i = 0;
+    while (string[i] != '\0') {
+        uart_putchar_polling(string[i]);
+        i++;
     }
 }
 
