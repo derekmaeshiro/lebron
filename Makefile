@@ -72,6 +72,7 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/io.c \
 		  src/drivers/mcu_init.c \
 		  src/drivers/uart.c \
+		  src/drivers/i2c.c \
 		  src/common/ring_buffer.c \
 		  src/common/trace.c \
 		  src/common/assert_handler.c \

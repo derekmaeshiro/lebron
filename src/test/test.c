@@ -4,10 +4,15 @@
 #include "../drivers/io.h"
 #include "../drivers/mcu_init.h"
 #include "../drivers/uart.h"
+#include "../drivers/i2c.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 #include "../common/trace.h"
 #include "external/printf/printf.h"
+
+#include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 SUPPRESS_UNUSED
 static void test_setup(void)
@@ -208,43 +213,6 @@ static void test_uart_put_char_interrupt(void)
     // uart_putchar_interrupt('c');
     // uart_putchar_interrupt('d');
     // uart_putchar_interrupt('e');
-
-    // const char *msg = "apples\n";
-    // while (*msg) {
-    //     uart_putchar_interrupt(*msg++);
-    // }
-
-    while (1) {
-        // uart_putchar_interrupt('H');
-        // uart_putchar_interrupt('e');
-        // uart_putchar_interrupt('l');
-        // uart_putchar_interrupt('l');
-        // uart_putchar_interrupt('o');
-        // uart_putchar_interrupt(' ');
-        // uart_putchar_interrupt('W');
-        // uart_putchar_interrupt('o');
-        // uart_putchar_interrupt('r');
-        // uart_putchar_interrupt('l');
-        // uart_putchar_interrupt('d');
-        // uart_putchar_interrupt('\n');
-    }
-
-    // while (1) {}
-
-    // const char *msg = "apples\n";
-    // while (*msg) {
-    //     uart_putchar_interrupt(*msg++);
-    // }
-    // while (*msg) {
-    //     uart_putchar_interrupt(*msg++);
-    // }
-    // while (*msg) {
-    //     uart_putchar_interrupt(*msg++);
-    // }
-
-    // while (*msg) {
-    //     uart_putchar_interrupt(*msg++);
-    // }
     
     while (1) { }
 }
@@ -292,6 +260,174 @@ static void test_trace(void)
         BUSY_WAIT_ms(1000);
     }
 
+}
+
+/* TESTING I2C */
+
+volatile uint8_t g_pca9685_last_read = 0;
+
+void pca9685_write_reg(uint8_t reg, uint8_t val)
+{
+    uint8_t payload[2] = {reg, val};
+    i2c_write(0x40, payload, 2, NULL);
+    while (i2c_is_busy());  // wait for write to finish
+}
+
+void pca9685_read_reg(uint8_t reg)
+{
+    i2c_write(0x40, &reg, 1, NULL);           // write reg address
+    while (i2c_is_busy());                   // wait for write to finish
+    i2c_read(0x40, (uint8_t*)&g_pca9685_last_read, 1, NULL);  // read value
+    while (i2c_is_busy());                   // wait for read to finish
+}
+
+SUPPRESS_UNUSED
+static void test_pca9685_readwrite(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    // Step 1: Write MODE1 to 0x10 (sleep mode)
+    pca9685_write_reg(0x00, 0x10);
+    TRACE("Write complete.\n");
+
+    // Step 2: Read it back
+    pca9685_read_reg(0x00);
+    TRACE("Read MODE1 = 0x%x\n", g_pca9685_last_read);
+}
+
+// Just write some bytes to a device and confirm no error
+bool test_i2c_write_only(uint8_t addr)
+{
+    uint8_t data[3] = {0x00, 0x55, 0xAA};  // example payload
+    if (!i2c_write(addr, data, 3, NULL)) {
+        TRACE("I2C busy, write failed\n");
+        return false;
+    }
+    while (i2c_is_busy());
+    TRACE("I2C write only test complete\n");
+    return true;
+}
+
+// This assumes device auto-increments or defaults to register 0 on read
+bool test_i2c_read_only(uint8_t addr, uint8_t *val)
+{
+    if (!i2c_read(addr, val, 1, NULL)) {
+        TRACE("I2C busy, read failed\n");
+        return false;
+    }
+    while (i2c_is_busy());
+    TRACE("I2C read only test value = 0x%x\n", *val);
+    return true;
+}
+
+// Write register address, then read 1 byte back (blocking, simple)
+bool test_i2c_write_then_read(uint8_t addr, uint8_t reg, uint8_t *val)
+{
+    if (!i2c_write(addr, &reg, 1, NULL)) return false;
+    while (i2c_is_busy());
+    if (!i2c_read(addr, val, 1, NULL)) return false;
+    while (i2c_is_busy());
+    TRACE("I2C write-then-read test reg=0x%x val=0x%x\n", reg, *val);
+    return true;
+}
+
+void test_i2c_loop_read(uint8_t addr, uint8_t reg)
+{
+    uint8_t val = 0;
+    while (1) {
+        if (test_i2c_write_then_read(addr, reg, &val)) {
+            TRACE("Loop read reg 0x%x = 0x%x\n", reg, val);
+        } else {
+            TRACE("I2C loop read failed\n");
+        }
+        BUSY_WAIT_ms(1000);  // your delay function
+    }
+}
+
+// Example usage in your main or test function
+void test_i2c_simple(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    uint8_t val = 0xAA;
+
+    // Write 0xAA to register 0x06
+    uint8_t payload[2] = { 0x06, val };
+    bool ok1 = i2c_write(0x40, payload, 2, NULL);
+    while (i2c_is_busy());
+
+    // Read it back
+    val = 0;
+    bool ok2 = test_i2c_write_then_read(0x40, 0x06, &val);
+    while (i2c_is_busy());
+
+    if (ok1 && ok2) {
+        TRACE("LED0_ON_L = 0x%02X\n", val);
+    } else {
+        TRACE("I2C write or read failed\n");
+    }
+}
+
+void pca9685_init(void)
+{
+    // 1. Sleep
+    uint8_t sleep[] = { 0x00, 0x10 }; // MODE1 = sleep
+    i2c_write(0x40, sleep, 2, NULL);
+    while (i2c_is_busy());
+
+    // 2. Set prescaler for 50Hz PWM
+    uint8_t prescale[] = { 0xFE, 121 }; // PRESCALE = 121
+    i2c_write(0x40, prescale, 2, NULL);
+    while (i2c_is_busy());
+
+    // 3. Wake up with auto-increment
+    uint8_t wake[] = { 0x00, 0x20 }; // MODE1 = auto-increment
+    i2c_write(0x40, wake, 2, NULL);
+    while (i2c_is_busy());
+}
+
+// Send PWM pulse to channel 0 (LED0_ON_L = 0x06)
+void pca9685_set_pwm_ch0(uint16_t on, uint16_t off)
+{
+    uint8_t payload[5];
+    payload[0] = 0x06;        // LED0_ON_L register
+    payload[1] = on & 0xFF;
+    payload[2] = on >> 8;
+    payload[3] = off & 0xFF;
+    payload[4] = off >> 8;
+
+    i2c_write(0x40, payload, 5, NULL);
+    while (i2c_is_busy());
+}
+
+void test_servo_simple(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    pca9685_init();
+
+    while (1) {
+        // Sweep left
+        pca9685_set_pwm_ch0(0, 102); // 0.5ms pulse
+        TRACE("Left\n");
+        BUSY_WAIT_ms(1000);
+
+        // Sweep center
+        pca9685_set_pwm_ch0(0, 307); // 1.5ms pulse
+        TRACE("Center\n");
+        BUSY_WAIT_ms(1000);
+
+        // Sweep right
+        pca9685_set_pwm_ch0(0, 512); // 2.5ms pulse
+        TRACE("Right\n");
+        BUSY_WAIT_ms(1000);
+    }
 }
 
 int main(void)
