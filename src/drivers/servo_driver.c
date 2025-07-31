@@ -43,7 +43,7 @@ void servo_driver_set_servo_angle(servo_driver_t *driver, servo_channel_t channe
 }
 
 // Set all channels' angles at once
-void servo_driver_set_all_servo_angles(servo_driver_t *driver, uint8_t angles[])
+void servo_driver_set_all_servo_angles(servo_driver_t *driver, const uint8_t angles[])
 {
     for (int i = 0; i < SERVO_DRIVER_MAX_CHANNELS; i++) {
         servo_driver_set_servo_angle(driver, i, angles[i]);

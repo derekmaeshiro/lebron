@@ -38,7 +38,7 @@ typedef struct
 
 void servo_driver_init(servo_driver_t *driver, uint8_t slave_address);
 void servo_driver_set_servo_angle(servo_driver_t *driver, servo_channel_t channel, uint8_t angle);
-void servo_driver_set_all_servo_angles(servo_driver_t *driver, uint8_t angles[]);
+void servo_driver_set_all_servo_angles(servo_driver_t *driver, const uint8_t angles[]);
 uint8_t servo_driver_get_servo_angle(servo_driver_t *driver, servo_channel_t channel);
 uint16_t angle_to_off_converter(uint8_t angle);
 
