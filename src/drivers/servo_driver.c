@@ -53,19 +53,19 @@ void servo_driver_set_all_servo_angles(servo_driver_t *driver, uint8_t angles[])
 void servo_driver_init(servo_driver_t *driver, uint8_t slave_address)
 {
     driver->slave_address = slave_address;
+    const uint8_t sleep[] = { 0x00, 0x10 };
+    const uint8_t prescale[] = { 0xFE, 121 };
+    const uint8_t wake[] = { 0x00, 0x20 };
 
     // Sleep
-    uint8_t sleep[] = { 0x00, 0x10 };
     i2c_write(slave_address, sleep, 2, NULL);
     while (i2c_is_busy()) { }
 
     // Prescale for 50Hz
-    uint8_t prescale[] = { 0xFE, 121 };
     i2c_write(slave_address, prescale, 2, NULL);
     while (i2c_is_busy()) { }
 
     // Wake, auto-increment
-    uint8_t wake[] = { 0x00, 0x20 };
     i2c_write(slave_address, wake, 2, NULL);
     while (i2c_is_busy()) { }
 
