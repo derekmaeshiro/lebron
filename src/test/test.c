@@ -5,6 +5,7 @@
 #include "../drivers/mcu_init.h"
 #include "../drivers/uart.h"
 #include "../drivers/i2c.h"
+#include "../drivers/servo_driver.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 #include "../common/trace.h"
@@ -428,6 +429,17 @@ void test_servo_simple(void)
         TRACE("Right\n");
         BUSY_WAIT_ms(1000);
     }
+}
+
+void test_multiple_servos(void)
+{
+    test_setup();
+    i2c_init();
+    servo_driver_t driver = {0};
+    servo_driver_init(&driver, 0x40);  // Includes set-all to 90 deg
+    // Next line guarantees channel 0 gets set again:
+    //servo_driver_set_servo_angle(&driver, 0, 90);
+    while (1) {}
 }
 
 int main(void)

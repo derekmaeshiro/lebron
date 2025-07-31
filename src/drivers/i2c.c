@@ -115,6 +115,7 @@ void i2c1_ev_handler(void)
             I2C1->DR = (ctx.slave_addr << 1); // write mode
             ctx.state = I2C_WRITE_DATA;
         }
+
         break;
 
     case I2C_WRITE_DATA:
