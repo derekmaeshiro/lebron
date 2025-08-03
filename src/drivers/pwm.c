@@ -2,177 +2,143 @@
 #include "pwm.h"
 #include "io.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
-
-/*
-    The following macros are used to calculate the # of ticks in a defined period.
-    TIMER_TICK_FREQ calculates the effective frequency of the timer given the values in defines.h.
-    PWM_PERIOD_FREQ_HZ defines the length of a period (the length of the PWM cycle),
-    and PWM_PERIOD_TICKS calculates the # of timer ticks in the defined period.
-*/
+#include "../common/trace.h"
 
 #if defined ROBOTIC_ARM
-#define PWM_PERIOD_FREQ_HZ (50UL)
-#define PWM_PERIOD_TICKS (TIMER_TICK_FREQ / PWM_PERIOD_FREQ_HZ)
-#define DESIRED_PWM_PERIOD_TICKS 20000
+#define PWM_FREQ_HZ 1000
+#define PWM_RESOLUTION 18464
+#define PWM_PERIOD_TICKS PWM_RESOLUTION
 
 struct pwm_channel_config
 {
-    bool enabled;
-    volatile uint32_t *const ccm;
-    volatile uint32_t *const cce;
-    volatile uint32_t *const ccr;
+    TIM_TypeDef *tim;
+    volatile uint32_t *ccm; // Pointer to CCMR1 or CCMR2
+    volatile uint32_t *cce; // Pointer to CCER
+    volatile uint32_t *ccr; // Pointer to CCRx
+    volatile uint32_t *egr; // Pointer to EGR
+    uint32_t oc_shift; // Bit position of OCxM in CCMRx
+    uint32_t ocpe_mask; // OCxPE bit mask
+    uint32_t ccer_mask;
 };
 
 static struct pwm_channel_config pwm_channel_configs[] = {
-    [PWM_DISTAL_INTERPHALANGEAL_JOINT] = { .enabled = false,
-                                           .ccm = &TIM2->CCMR1,
-                                           .cce = &TIM2->CCER,
-                                           .ccr = &TIM2->CCR1 },
-    [PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = { .enabled = false,
-                                             .ccm = &TIM2->CCMR1,
-                                             .cce = &TIM2->CCER,
-                                             .ccr = &TIM2->CCR2 },
-    [PWM_METACARPOPHALANGEAL_JOINT_1] = { .enabled = false,
-                                          .ccm = &TIM2->CCMR2,
-                                          .cce = &TIM2->CCER,
-                                          .ccr = &TIM2->CCR3 },
-    [PWM_METACARPOPHALANGEAL_JOINT_2] = { .enabled = false,
-                                          .ccm = &TIM2->CCMR2,
-                                          .cce = &TIM2->CCER,
-                                          .ccr = &TIM2->CCR4 }
+    [PWM_DISTAL_INTERPHALANGEAL_JOINT] = {
+        .tim = TIM3,
+        .ccr = &TIM3->CCR1,
+        .ccm = &TIM3->CCMR1,
+        .cce = &TIM3->CCER,
+        .egr = &TIM3->EGR,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR1_OC1PE,
+        .ccer_mask = TIM_CCER_CC1E,
+    },
+    [PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = {
+        .tim = TIM3,
+        .ccr = &TIM3->CCR2,
+        .ccm = &TIM3->CCMR1,
+        .cce = &TIM3->CCER,
+        .egr = &TIM3->EGR,
+        .oc_shift = TIM_CCMR1_OC2M_Pos,
+        .ocpe_mask = TIM_CCMR1_OC2PE,
+        .ccer_mask = TIM_CCER_CC2E,
+    },
+    [PWM_METACARPOPHALANGEAL_JOINT_1] = {
+        .tim = TIM8,
+        .ccm = &TIM8->CCMR1,
+        .cce = &TIM8->CCER,
+        .ccr = &TIM8->CCR1,
+        .egr = &TIM8->EGR,
+        .ccer_mask = TIM_CCER_CC1E,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR1_OC1PE,
+    },
+    [PWM_METACARPOPHALANGEAL_JOINT_2] = {
+        .tim = TIM2,
+        .ccm = &TIM2->CCMR2,
+        .cce = &TIM2->CCER,
+        .ccr = &TIM2->CCR3,
+        .egr = &TIM2->EGR,
+        .ccer_mask = TIM_CCER_CC3E,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR2_OC3PE,
+    },
 };
 
-static const struct io_config pwm_io_config = {
-    .used = true,
-    .select = IO_SELECT_ALT,
-    .io_alt_function = IO_ALT_FUNCTION_2,
-    .resistor = IO_RESISTOR_DISABLED,
-    .out = IO_OUT_LOW,
-};
-
+// Removed strict io_config assertion due to mixed AFs
 static bool initialized = false;
 
 void pwm_init(void)
 {
     ASSERT(!initialized);
 
-    // Assert that PWM pins for ROBOTIC ARM are configured properly
-    struct io_config current_config;
-    io_get_current_config(IO_PWM_DISTAL_INTERPHALANGEAL_JOINT, &current_config);
-    ASSERT(io_config_compare(&current_config, &pwm_io_config));
-    io_get_current_config(IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT, &current_config);
-    ASSERT(io_config_compare(&current_config, &pwm_io_config));
-    io_get_current_config(IO_PWM_METACARPOPHALANGEAL_JOINT_1, &current_config);
-    ASSERT(io_config_compare(&current_config, &pwm_io_config));
-    io_get_current_config(IO_PWM_METACARPOPHALANGEAL_JOINT_2, &current_config);
-    ASSERT(io_config_compare(&current_config, &pwm_io_config));
+    // Enable timer clocks
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN;
+    RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
 
-    // Initialize base timer
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-    TIM2->PSC = TIMER_PRESCALER;
-    TIM2->CNT = 0;
-    TIM2->ARR = PWM_PERIOD_TICKS - 1;
+    TIM2->PSC = (84000000UL / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
+    TIM3->PSC = (84000000UL / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
+    TIM8->PSC = (84000000UL / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
+
+    // Use standardized ARR
+    TIM2->ARR = TIM3->ARR = TIM8->ARR = PWM_PERIOD_TICKS - 1;
+
+    TIM2->CNT = TIM3->CNT = TIM8->CNT = 0;
 
     initialized = true;
 }
 
-static bool pwm_all_channels_disabled()
+void pwm_channel_enable(pwm_e pwm)
 {
-    for (uint8_t i = 0; i < ARRAY_SIZE(pwm_channel_configs); i++) {
-        if (pwm_channel_configs[i].enabled) {
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool pwm_enabled = false;
-static void pwm_enable(bool enable)
-{
-    if (pwm_enabled != enable) {
-        if (enable) {
-            // Generate an update event to load registers
-            TIM2->EGR |= TIM_EGR_UG;
-
-            // Enable auto-reload preload
-            TIM2->CR1 |= TIM_CR1_ARPE;
-
-            // Enable counter
-            TIM2->CR1 |= TIM_CR1_CEN;
-        } else {
-            // Disable counter
-            TIM2->CR1 &= ~TIM_CR1_CEN;
-        }
-
-        pwm_enabled = enable;
-    }
-}
-
-void pwm_channel_enable(pwm_e pwm, bool enable)
-{
+    ASSERT(pwm < ARRAY_SIZE(pwm_channel_configs));
     struct pwm_channel_config *ch = &pwm_channel_configs[pwm];
-    if (pwm_channel_configs[pwm].enabled != enable) {
-        uint32_t ccmr_mask = 0;
-        uint32_t ccer_mask = 0;
 
-        switch (pwm) {
-        case PWM_DISTAL_INTERPHALANGEAL_JOINT: // CH1
-            ccmr_mask = TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1PE;
-            ccer_mask = TIM_CCER_CC1E;
-            break;
-        case PWM_PROXIMAL_INTERPHALANGEAL_JOINT: // CH2
-            ccmr_mask = TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2PE;
-            ccer_mask = TIM_CCER_CC2E;
-            break;
-        case PWM_METACARPOPHALANGEAL_JOINT_1: // CH3
-            ccmr_mask = TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3PE;
-            ccer_mask = TIM_CCER_CC3E;
-            break;
-        case PWM_METACARPOPHALANGEAL_JOINT_2: // CH4
-            ccmr_mask = TIM_CCMR2_OC4M_1 | TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4PE;
-            ccer_mask = TIM_CCER_CC4E;
-            break;
-        default:
-            ASSERT(false); // Invalid channel
-            return;
-        }
+    TIM_TypeDef *tim = ch->tim;
 
-        // Disable channel before modifying registers
-        *(ch->cce) &= ~ccer_mask;
+    // Disable output before changing config
+    *(ch->cce) &= ~(ch->ccer_mask);
 
-        if (enable) {
-            *(ch->ccm) |= ccmr_mask; // Set PWM mode and enable preload
-            *(ch->cce) |= ccer_mask; // Enable output
-        } else {
-            *(ch->cce) &= ~ccer_mask; // Disable output
-        }
+    // Enable auto-reload preload and main counter
+    tim->CR1 |= TIM_CR1_ARPE | TIM_CR1_CEN;
 
-        ch->enabled = enable;
+    // Configure output compare mode
+    *(ch->ccm) &= ~(0b111 << ch->oc_shift); // Clear OCxM bits
+    *(ch->ccm) |= (6 << ch->oc_shift) | ch->ocpe_mask; // Set PWM mode 1 + preload
 
-        if (enable) {
-            pwm_enable(true); // start timer if needed
-        } else if (pwm_all_channels_disabled()) {
-            pwm_enable(false); // stop timer if no channels active
-        }
+    // Generate update event to latch values
+    *(ch->egr) |= TIM_EGR_UG;
+
+    // Enable channel output
+    *(ch->cce) |= ch->ccer_mask;
+
+    // For advanced-control timers like TIM8, enable main output
+    if (tim == TIM1 || tim == TIM8) {
+        tim->BDTR |= TIM_BDTR_MOE;
     }
 }
 
-static inline uint8_t pwm_scale_duty_cycle(uint8_t duty_cycle_percent)
+static inline uint32_t pwm_scale_duty_cycle(struct pwm_channel_config *ch,
+                                            uint8_t duty_cycle_percent)
 {
-    return duty_cycle_percent;
+    ASSERT(duty_cycle_percent <= 100);
+    uint32_t period = ch->tim->ARR + 1;
+    return (duty_cycle_percent * period) / 100;
 }
 
 void pwm_set_duty_cycle(pwm_e pwm, uint8_t duty_cycle_percent)
 {
-    ASSERT(duty_cycle_percent <= 100);
+    ASSERT(pwm < ARRAY_SIZE(pwm_channel_configs));
+    struct pwm_channel_config *ch = &pwm_channel_configs[pwm];
 
-    int duty_ticks = (duty_cycle_percent * PWM_PERIOD_TICKS) / 100;
-    const bool enable = duty_cycle_percent > 0;
-    if (enable) {
-        *pwm_channel_configs[pwm].ccr = pwm_scale_duty_cycle(duty_ticks);
+    if (duty_cycle_percent > 0) {
+        uint32_t ccr_val = pwm_scale_duty_cycle(ch, duty_cycle_percent);
+        *(ch->ccr) = ccr_val;
+        pwm_channel_enable(pwm);
+    } else {
+        *(ch->ccr) = 0;
     }
-    pwm_channel_enable(pwm, enable);
 }
+
 #endif
