@@ -121,7 +121,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                                               IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA6 TIM?
     [IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
                                                 IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA7
-    [IO_PWM_METACARPOPHALANGEAL_JOINT_1] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
+    [IO_PWM_METACARPOPHALANGEAL_JOINT_1] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_3,
                                              IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PC6?
     [IO_PWM_METACARPOPHALANGEAL_JOINT_2] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_1,
                                              IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PB10

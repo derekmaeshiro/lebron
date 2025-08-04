@@ -68,8 +68,8 @@ typedef enum {
 #if defined(ARM_SLEEVE) // STM32F411 (Black Pill)
     IO_I2C_SCL = IO_PB8, // IMU sensor drivers
     IO_I2C_SDA = IO_PB9, // IMU sensor drivers
-    IO_UART_RXD = IO_PA9, // Bluetooth Communication
-    IO_UART_TXD = IO_PA10, // Bluetooth Communication
+    IO_UART_RXD = IO_PA10, // Bluetooth Communication
+    IO_UART_TXD = IO_PA9, // Bluetooth Communication
     IO_TEST_LED = IO_PC13, // Testing Blinky / Debugging
     IO_ANALOG_MUX_S0 = IO_PB4, // Analog Mux Bit Configuration
     IO_ANALOG_MUX_S1 = IO_PB5, // Analog Mux Bit Configuration

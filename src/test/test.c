@@ -2,10 +2,18 @@
 // #include "../include/stm32f446xx.h" // Include the device-specific header
 #include "../drivers/led.h"
 #include "../drivers/io.h"
+#include "../drivers/pwm.h"
 #include "../drivers/mcu_init.h"
+#include "../drivers/uart.h"
 #include "../drivers/adc.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
+#include "../common/trace.h"
+
+// For PWM test
+#define PWM_GPIO_PORT GPIOA
+#define PWM_GPIO_PIN 6
+#define PWM_AF 2
 
 SUPPRESS_UNUSED
 static void test_setup(void)
@@ -51,7 +59,7 @@ static void test_nucleo_io_pins_output(void)
             continue;
         }
 
-        io_configure( (io_e) io, &output_config);
+        io_configure((io_e)io, &output_config);
     }
 
     while (1) {
@@ -60,13 +68,12 @@ static void test_nucleo_io_pins_output(void)
                 continue;
             }
 
-            io_set_out( (io_e) io, IO_OUT_HIGH);
-            for (volatile int i = 0; i < 10000; i++) {}
-            io_set_out( (io_e) io, IO_OUT_LOW);
+            io_set_out((io_e)io, IO_OUT_HIGH);
+            for (volatile int i = 0; i < 10000; i++) { }
+            io_set_out((io_e)io, IO_OUT_LOW);
         }
     }
 }
-
 
 /* Configure all the pins except PA5 as input with internal pull-up resistors.
  * Expected behavior: Driving a pin to ground will turn off the led until you un-drive the pin.
@@ -145,7 +152,7 @@ static void pa_10_isr(void)
 
 SUPPRESS_UNUSED
 static void test_io_interrupt(void)
-{   
+{
     test_setup();
     const struct io_config input_config = {
         .select = IO_SELECT_INPUT,
@@ -154,16 +161,177 @@ static void test_io_interrupt(void)
         .out = IO_OUT_HIGH,
     };
 
-    io_configure((io_e) IO_PA1, &input_config);
-    io_configure((io_e) IO_PA10, &input_config);
+    io_configure((io_e)IO_PA1, &input_config);
+    io_configure((io_e)IO_PA10, &input_config);
     led_init();
-    io_configure_interrupt((io_e) IO_PA1, IO_TRIGGER_FALLING, pa_1_isr);
-    io_configure_interrupt((io_e) IO_PA10, IO_TRIGGER_FALLING, pa_10_isr);
-    io_enable_interrupt((io_e) IO_PA1);
-    io_enable_interrupt((io_e) IO_PA10);
-    while (1);
+    io_configure_interrupt((io_e)IO_PA1, IO_TRIGGER_FALLING, pa_1_isr);
+    io_configure_interrupt((io_e)IO_PA10, IO_TRIGGER_FALLING, pa_10_isr);
+    io_enable_interrupt((io_e)IO_PA1);
+    io_enable_interrupt((io_e)IO_PA10);
+    while (1)
+        ;
 }
 
+SUPPRESS_UNUSED
+static void test_uart_put_char_polling(void)
+{
+    test_setup();
+    mcu_init();
+    uart_init();
+
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('a');
+    uart_putchar_polling('p');
+    uart_putchar_polling('p');
+    uart_putchar_polling('l');
+    uart_putchar_polling('e');
+    uart_putchar_polling('\n');
+}
+
+SUPPRESS_UNUSED
+static void test_uart_put_char_interrupt(void)
+{
+    test_setup();
+    mcu_init();
+    uart_init();
+
+    // uart_putchar_interrupt('a');
+    // uart_putchar_interrupt('b');
+    // uart_putchar_interrupt('c');
+    // uart_putchar_interrupt('d');
+    // uart_putchar_interrupt('e');
+
+    // const char *msg = "apples\n";
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+
+    while (1) {
+        // uart_putchar_interrupt('H');
+        // uart_putchar_interrupt('e');
+        // uart_putchar_interrupt('l');
+        // uart_putchar_interrupt('l');
+        // uart_putchar_interrupt('o');
+        // uart_putchar_interrupt(' ');
+        // uart_putchar_interrupt('W');
+        // uart_putchar_interrupt('o');
+        // uart_putchar_interrupt('r');
+        // uart_putchar_interrupt('l');
+        // uart_putchar_interrupt('d');
+        // uart_putchar_interrupt('\n');
+    }
+
+    // while (1) {}
+
+    // const char *msg = "apples\n";
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+
+    // while (*msg) {
+    //     uart_putchar_interrupt(*msg++);
+    // }
+
+    while (1) { }
+}
+
+SUPPRESS_UNUSED
+static void test_uart_put_string(void)
+{
+    test_setup();
+    mcu_init();
+    uart_init();
+
+    while (1) {
+        uart_print_interrupt("ANgry brids\n");
+        BUSY_WAIT_ms(250);
+    }
+}
+
+SUPPRESS_UNUSED
+static void test_uart(void)
+{
+    test_setup();
+    uart_init();
+    while (1) {
+        _putchar('D');
+        _putchar('E');
+        _putchar('R');
+        _putchar('E');
+        _putchar('K');
+        _putchar('!');
+        _putchar('\n');
+        BUSY_WAIT_ms(100);
+    }
+}
+
+SUPPRESS_UNUSED
+static void test_trace(void)
+{
+    test_setup();
+    trace_init();
+
+    while (1) {
+        // printf("derek maeshiro %d\n", 2025);
+        TRACE("Artful bytes %d", 2025);
+        BUSY_WAIT_ms(1000);
+    }
+}
+
+SUPPRESS_UNUSED
+static void test_pwm(void)
+{
+    test_setup();
+    trace_init();
+    led_init();
+#if defined ROBOTIC_ARM
+    pwm_init();
+    pwm_e pwms[] = { PWM_DISTAL_INTERPHALANGEAL_JOINT,
+                             PWM_PROXIMAL_INTERPHALANGEAL_JOINT,
+                             PWM_METACARPOPHALANGEAL_JOINT_1,
+                             PWM_METACARPOPHALANGEAL_JOINT_2 };
+    const int duty_cycles[] = { 0, 20, 40, 60, 80, 100 };
+    const uint16_t wait_time = 3000;
+    while (1) {
+        for (uint8_t i = 0; i < 6; i++) {
+            TRACE("Set duty cycle to %d for %d ms", duty_cycles[i], wait_time);
+            led_set(LED_TEST, LED_STATE_ON);
+            for(uint8_t j=0; j<ARRAY_SIZE(pwms); j++) {
+                pwm_set_duty_cycle(pwms[j], duty_cycles[i]);
+            }
+            BUSY_WAIT_ms(wait_time);
+
+            // Turn off the PWM channel and toggle off LED
+            TRACE("Turning off PWM and waiting for %d ms", wait_time);
+            led_set(LED_TEST, LED_STATE_OFF);
+            for(uint8_t j=0; j<ARRAY_SIZE(pwms); j++) {
+                pwm_set_duty_cycle(pwms[j], 0);
+            }
+            BUSY_WAIT_ms(wait_time);
+        }
+    }
+#endif
+}
 SUPPRESS_UNUSED
 static void test_adc(void)
 {
@@ -185,5 +353,7 @@ static void test_adc(void)
 int main(void)
 {
     TEST();
+    while (1) { }
+
     ASSERT(0);
 }
