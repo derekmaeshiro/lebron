@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stm32f4xx.h> // for __NOP()
 
+#define PCLK1 45000000U
+#define PCLK2 84000000U
+#define BAUD 115200U
+#define I2C_SPEED 100000U // in kHz
+
 #define SYSTEM_CORE_CLOCK 168000000UL
 #define UNUSED(x) (void)(x)
 #define SUPPRESS_UNUSED __attribute__((unused))

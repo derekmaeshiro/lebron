@@ -5,6 +5,7 @@
 
 void uart_init(void);
 void uart_putchar_polling(char c);
+void uart_print_polling(const char *string);
 void _putchar(char c);
 void uart_print_interrupt(const char *string);
 

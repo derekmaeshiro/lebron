@@ -75,6 +75,8 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/servo.c \
 		  src/drivers/mcu_init.c \
 		  src/drivers/uart.c \
+		  src/drivers/i2c.c \
+		  src/drivers/servo_driver.c \
 		  src/common/ring_buffer.c \
 		  src/common/trace.c \
 		  src/common/assert_handler.c \
