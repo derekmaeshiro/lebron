@@ -68,6 +68,21 @@ as interrupts must each share the same interrupt handler. As a result, there are
 possible interrupt handlers and 16 possible configurable interrupt pins. */
 static isr_function isr_functions[7] = { NULL };
 
+/* In the STM32 series, ISR functions (interrupt handlers) are handled on a basis of pins per port.
+You can only have one interrupt configured for one pin in every port at a time. As a result, if you
+configure PA0 as an interrupt, you can't configure PB0, PC0, or PD0 as interrupts. Furthermore,
+interrupt handlers (what happens at an interrupt) are differentiated by the EXTI lines. EXTI0 to
+EXTI4 can each hold 1 interrupt handler. However, EXTI5-9 and EXTI10-15, the last two handlers, each
+only hold 1 interrupt handler. This means that the pins 5-9 and the pins 10-15 that are configured
+as interrupts must each share the same interrupt handler. As a result, there are, at a maximum, 7
+possible interrupt handlers and 16 possible configurable interrupt pins. */
+
+// TODO: This had an error. I commented for now.
+// static isr_function isr_functions[7] = { NULL };
+
+/* Macro for ADC pin configuration */
+#define ADC_CONFIG { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED, IO_OUT_LOW }
+
 /* This array holds the initial configs of all IO pins. */
 /* Never: PA13, PA14 (debug) - don't touch */
 static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PORT] = {
@@ -95,15 +110,17 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                                  IO_OUT_LOW }, // PB12
     [IO_ANALOG_MUX_ENABLE_2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                                  IO_OUT_LOW }, // PB13
-    [IO_ANALOG_MUX_COM_1] = { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
-                              IO_OUT_LOW }, // PA0
+    // [IO_ANALOG_MUX_COM_1] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
+    //                           IO_OUT_LOW }, // PA0
+    // Substituted inline pin configuration with ADC config
+    [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0
     [IO_ANALOG_MUX_COM_2] = { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
                               IO_OUT_LOW }, // PA1
     [IO_PWM_DISTAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
                                               IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA6 TIM?
     [IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
                                                 IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA7
-    [IO_PWM_METACARPOPHALANGEAL_JOINT_1] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
+    [IO_PWM_METACARPOPHALANGEAL_JOINT_1] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_3,
                                              IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PC6?
     [IO_PWM_METACARPOPHALANGEAL_JOINT_2] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_1,
                                              IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PB10
@@ -133,6 +150,11 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                       IO_OUT_LOW }, // PC13, User LED
 #endif
 };
+
+// TODO: Assign pins here that will be reserved as ADC pins
+// Temporarily assigned one
+
+static const io_e io_adc_pins_arr[] = { IO_ANALOG_MUX_COM_1 };
 
 // Default config for all *other* pins
 const struct io_config io_default_unused = { false, IO_SELECT_ANALOG, IO_ALT_FUNCTION_0,
@@ -449,4 +471,32 @@ void exti15_10_handler(void)
             io_isr(io_mapped_to_exti(pin));
         }
     }
+}
+
+// Helper method to retrieve pointer to array of ADC pins
+const io_e *io_adc_pins(uint8_t *cnt)
+{
+    *cnt = ARRAY_SIZE(io_adc_pins_arr);
+    return io_adc_pins_arr;
+}
+
+// Check if a pin is compatible with ADC
+bool io_supports_adc(io_e pin)
+{
+    switch (pin) {
+    case IO_ANALOG_MUX_COM_1:
+        return true;
+    case IO_ANALOG_MUX_COM_2:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
+// Helper method to retrieve ADC channel index given provided pin
+uint8_t io_to_adc_idx(io_e io)
+{
+    ASSERT(io_supports_adc(io));
+    return io_pin_idx(io);
 }

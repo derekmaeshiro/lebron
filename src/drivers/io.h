@@ -1,6 +1,6 @@
 #ifndef IO_H
 #define IO_H
-
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef enum {
@@ -71,6 +71,15 @@ typedef enum {
     IO_UART_RXD = IO_PA10, // Bluetooth Communication
     IO_UART_TXD = IO_PA9, // Bluetooth Communication
     IO_TEST_LED = IO_PC13, // Testing Blinky / Debugging
+    IO_ANALOG_MUX_S0 = IO_PB4, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_S1 = IO_PB5, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_S2 = IO_PB3, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_S3 = IO_PA15, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_ENABLE_1 = IO_PB12, // Analog Mux Enable Pin
+    IO_ANALOG_MUX_ENABLE_2 = IO_PB13, // Analog Mux Enable Pin
+    IO_ANALOG_MUX_COM_1 = IO_PA0, // Analog Mux Output Pin
+    IO_ANALOG_MUX_COM_2 = IO_PA1, // Analog Mux Output Pin
+
 #elif defined(ROBOTIC_ARM) // STM32F446RE
     IO_I2C_SCL = IO_PB8, // Servo drivers
     IO_I2C_SDA = IO_PB9, // Servo drivers
@@ -160,6 +169,12 @@ bool io_config_compare(const struct io_config *cfg1, const struct io_config *cfg
 void io_set_select(io_e io, io_select_e select, io_alt_function_e alt_function);
 void io_set_resistor(io_e io, io_resistor_e resistor); // only applicable if pin is set to input
 void io_set_out(io_e io, io_out_e out);
+
+// ADC functions
+const io_e *io_adc_pins(uint8_t *cnt);
+bool io_supports_adc(io_e pin);
+uint8_t io_to_adc_idx(io_e io);
+
 io_in_e io_get_input(io_e io);
 
 typedef void (*isr_function)(void);
