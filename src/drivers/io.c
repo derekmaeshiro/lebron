@@ -81,7 +81,6 @@ possible interrupt handlers and 16 possible configurable interrupt pins. */
 // static isr_function isr_functions[7] = { NULL };
 
 /* Macro for ADC pin configuration */
-/* Maybe remove? */
 #define ADC_CONFIG { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED, IO_OUT_LOW }
 
 /* This array holds the initial configs of all IO pins. */
@@ -498,7 +497,6 @@ bool io_supports_adc(io_e pin)
 // Helper method to retrieve ADC channel index given provided pin
 uint8_t io_to_adc_idx(io_e io)
 {
-    // Uncomment when asserts are implemented
-    // ASSERT(io_pin_supports_adc(io))
+    ASSERT(io_supports_adc(io));
     return io_pin_idx(io);
 }

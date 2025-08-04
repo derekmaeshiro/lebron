@@ -3,6 +3,7 @@
 #include "../common/defines.h"
 #include "../common/ring_buffer.h"
 #include <stm32f4xx.h>
+#include "../common/trace.h"
 
 int count = 0;
 
@@ -90,6 +91,7 @@ static void uart_configure(void)
     USART1->CR1 |= USART_CR1_UE;
 
     // 8. Enable NVIC interrupt for USART1
+    NVIC_SetPriority(USART1_IRQn, 1);
     NVIC_EnableIRQ(USART1_IRQn);
 }
 

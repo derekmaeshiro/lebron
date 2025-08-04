@@ -39,7 +39,7 @@ static void test_blink_led(void)
     while (1) {
         led_state = (led_state == LED_STATE_OFF) ? LED_STATE_ON : LED_STATE_OFF;
         led_set(LED_TEST, led_state);
-        BUSY_WAIT_ms(1000);
+        BUSY_WAIT_ms(5000);
     }
 }
 
@@ -332,21 +332,21 @@ static void test_pwm(void)
     }
 #endif
 }
+
 SUPPRESS_UNUSED
 static void test_adc(void)
 {
     test_setup();
-    // Uncomment once UART is complete
-    //trace_init();
+    trace_init();
+    led_init();
     adc_init();
     while(1){
         adc_channel_values_t values;
         adc_get_channel_values(values);
-        for(uint8_t i=0; i<ADC_CHANNEL_COUNT; i++){
-            // TODO: Uncomment once UART is complete
-            // TRACE("ADC ch %u: %u", i, values[i]);
+        for(uint8_t i=0; i<ARRAY_SIZE(values); i++){
+            TRACE("ADC ch %u: %u", i, values[i]);
         }
-        BUSY_WAIT_ms(1000);
+        BUSY_WAIT_ms(2000);
     }
 }
 
