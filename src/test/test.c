@@ -413,7 +413,9 @@ void test_servo_simple(void)
 
     pca9685_init();
 
-    while (1) {
+    //while (1) { }
+
+    while (1) { //175 for stm32f446re
         // Sweep left
         pca9685_set_pwm_ch0(0, 102); // 0.5ms pulse
         TRACE("Left\n");
@@ -437,9 +439,67 @@ void test_multiple_servos(void)
     i2c_init();
     servo_driver_t driver = {0};
     servo_driver_init(&driver, 0x40);  // Includes set-all to 90 deg
-    // Next line guarantees channel 0 gets set again:
-    //servo_driver_set_servo_angle(&driver, 0, 90);
     while (1) {}
+}
+
+void delay(volatile uint32_t count) {
+    while (count--);
+}
+
+SUPPRESS_UNUSED
+static void test_pc_13(void)
+{
+    // Enable the clock for GPIOC
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN; 
+
+    // Clear mode for PC13 and set it to output mode
+    GPIOC->MODER &= ~(0x3 << (13 * 2)); // Clear mode for PC13
+    GPIOC->MODER |= (0x01 << (13 * 2)); // Set to output mode (01)
+
+    while (1) {
+        // Toggle the LED
+        GPIOC->ODR ^= (1 << 13); // Toggle PC13
+        delay(3000000); // Call a simple delay
+    }
+}
+
+// PA9 = USART1_TX
+void uart_init_simple(void)
+{
+    // Enable GPIOA/USART1 clocks
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+
+    // Set PA9 to AF7 (USART1)
+    GPIOA->MODER &= ~(0b11 << (9*2));
+    GPIOA->MODER |=  (0b10 << (9*2));
+    GPIOA->AFR[1] &= ~(0xF << ((9-8)*4));
+    GPIOA->AFR[1] |=  (0x7 << ((9-8)*4));
+
+    // Set baud: 100 MHz / 9600 = 10417 -> mantissa=651, frac=1. 6511 = 0x197F
+    USART1->BRR = (100000000 + 4800)/9600;   // rounding for ~9600
+        
+    USART1->CR1 = USART_CR1_TE | USART_CR1_UE;
+}
+
+void uart_putc(char c)
+{
+    while (!(USART1->SR & USART_SR_TXE));
+    USART1->DR = c;
+}
+
+SUPPRESS_UNUSED
+void test_polling_check(void)
+{
+    test_setup();
+    uart_init_simple();
+    // blink here if you want
+
+    while (1) {
+    while (!(USART1->SR & USART_SR_TXE));
+    USART1->DR = 'U';
+    for (volatile int i = 0; i < 200000; ++i) {}
+}
 }
 
 int main(void)

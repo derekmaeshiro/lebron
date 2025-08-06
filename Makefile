@@ -87,6 +87,7 @@ else
 SOURCES = \
 		  src/test/test.c \
 		  $(SOURCES_WITH_HEADERS)
+
 # Delete object file to force rebuild when changing test
 $(shell rm -f $(BUILD_DIR)/obj/src/test/test.o)
 endif
@@ -129,7 +130,7 @@ SUPFLAGS = $(STARTUP) -Wl,--gc-sections
 # Build
 ## Linking
 $(TARGET): $(OBJECTS)
-	echo $(OBJECTS)
+	@echo "OBJECTS: $(OBJECTS)"
 	@mkdir -p $(dir $@)
 	$(CC) $(LDFLAGS) $(SUPFLAGS) $^ -o $@
 
