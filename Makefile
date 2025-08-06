@@ -70,6 +70,9 @@ TARGET = $(BUILD_DIR)/bin/$(TARGET_HW)/$(TARGET_NAME)
 SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
 		  src/drivers/io.c \
+		  src/drivers/adc.c \
+		  src/drivers/pwm.c \
+		  src/drivers/servo.c \
 		  src/drivers/mcu_init.c \
 		  src/drivers/uart.c \
 		  src/drivers/i2c.c \
