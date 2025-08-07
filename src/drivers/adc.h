@@ -2,7 +2,7 @@
 #ifndef ADC_H
 #define ADC_H
 
-#define ADC_CHANNEL_COUNT (16u)
+#define ADC_CHANNEL_COUNT (2u)
 
 // Channel values are 12-bit integers
 typedef uint16_t adc_channel_values_t[ADC_CHANNEL_COUNT];
@@ -14,4 +14,3 @@ void adc_init(void);
 void adc_get_channel_values(adc_channel_values_t values);
 
 #endif
-

@@ -72,6 +72,7 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/io.c \
 		  src/drivers/adc.c \
 		  src/drivers/pwm.c \
+		  src/drivers/potentiometer.c \
 		  src/drivers/servo.c \
 		  src/drivers/mcu_init.c \
 		  src/drivers/uart.c \

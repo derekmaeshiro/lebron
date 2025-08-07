@@ -1,6 +1,7 @@
 #include "io.h"
 #include "../common/defines.h"
 #include "../common/assert_handler.h"
+#include "../common/trace.h"
 #include <stm32f4xx.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -114,8 +115,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
     //                           IO_OUT_LOW }, // PA0
     // Substituted inline pin configuration with ADC config
     [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0
-    [IO_ANALOG_MUX_COM_2] = { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
-                              IO_OUT_LOW }, // PA1
+    [IO_ANALOG_MUX_COM_2] = ADC_CONFIG, // PA1
     [IO_PWM_DISTAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
                                               IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA6 TIM?
     [IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
@@ -154,7 +154,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
 // TODO: Assign pins here that will be reserved as ADC pins
 // Temporarily assigned one
 
-static const io_e io_adc_pins_arr[] = { IO_ANALOG_MUX_COM_1 };
+static const io_e io_adc_pins_arr[] = { IO_ANALOG_MUX_COM_1, IO_ANALOG_MUX_COM_2 };
 
 // Default config for all *other* pins
 const struct io_config io_default_unused = { false, IO_SELECT_ANALOG, IO_ALT_FUNCTION_0,

@@ -3,6 +3,7 @@
 #include "../drivers/led.h"
 #include "../drivers/io.h"
 #include "../drivers/pwm.h"
+#include "../drivers/potentiometer.h"
 #include "../drivers/mcu_init.h"
 #include "../drivers/uart.h"
 #include "../drivers/adc.h"
@@ -346,12 +347,14 @@ static void test_adc(void)
     trace_init();
     led_init();
     adc_init();
+    TRACE("Testing adc...");
     while(1){
         adc_channel_values_t values;
         adc_get_channel_values(values);
         for(uint8_t i=0; i<ARRAY_SIZE(values); i++){
             TRACE("ADC ch %u: %u", i, values[i]);
         }
+        TRACE("\n");
         BUSY_WAIT_ms(2000);
     }
 }
@@ -533,6 +536,25 @@ void test_multiple_servos(void)
     // Next line guarantees channel 0 gets set again:
     //servo_driver_set_servo_angle(&driver, 0, 90);
     while (1) {}
+}
+
+SUPPRESS_UNUSED
+void test_potentiometer(void){
+    test_setup();
+    trace_init();
+    adc_init();
+    potentiometer_init();
+
+    TRACE("Testing potentiometer...");
+    while(1){
+        adc_channel_values_t values;
+        adc_get_channel_values(values);
+        for(uint8_t i=0; i<ARRAY_SIZE(values); i++){
+            uint16_t angle_value = convert_adc_value_to_angle(values[i]);
+            TRACE("ADC ch %u: %u converted to %u", i, values[i], angle_value);
+        }
+        BUSY_WAIT_ms(2000);
+    }
 }
 
 int main(void)

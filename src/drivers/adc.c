@@ -8,12 +8,8 @@
 #include "../common/assert_handler.h"
 #include "../common/trace.h"
 
-static const io_e *adc_pins;
-// Update based on number of pins being used
-static uint8_t adc_pin_cnt = 1;
-
-static volatile adc_channel_values_t adc_dtc_block;
-static volatile adc_channel_values_t adc_dtc_block_cache;
+static const io_e *adc_pins = 0;
+static uint8_t adc_pin_cnt = 0;
 
 struct io_config default_adc_pin_config = { .select = IO_SELECT_ANALOG,
                                             .io_alt_function = IO_ALT_FUNCTION_0,
@@ -39,50 +35,41 @@ void adc_init(void)
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
     // For single conversion mode
-    ADC1 -> CR1 = (adc_pin_cnt > 1) ? ADC_CR1_SCAN : 0;
-    ADC1 -> CR2 = 0;
+    ADC1->CR1 = ADC_CR1_SCAN;
+    ADC1->CR2 = ADC_CR2_EOCS; // EOC after each conversion
 
     // // For continuous conversion mode
     // ADC1-> CR2 = ADC_CR2_CONT;
-
-    ADC1->CR2 |= ADC_CR2_DMA | ADC_CR2_DDS;
-
-    // Maximum sample time for all channels
-    ADC1->SMPR2 = 0xFFFFFFFF;
+    // ADC1->CR2 |= ADC_CR2_DMA | ADC_CR2_DDS;
 
     // Max sample time for all channels
     ADC1->SMPR1 = 0x3FFFFFFF;
     ADC1->SMPR2 = 0x3FFFFFFF;
 
-    // Sequence length
+    // Fill conversion sequence starting from first conversion (SQR3 first slots)
     ADC1->SQR1 = ((adc_pin_cnt - 1) << 20);
+    ADC1->SQR3 = 0;
+    for(uint8_t i = 0; i < adc_pin_cnt; i++) {
+        uint8_t ch = io_to_adc_idx(adc_pins[i]);
+        ADC1->SQR3 |= (ch << (i * 5)); // 5 bits per channel in SQR3
+    }
 
     initialized = true;
 }
 
 void adc_get_channel_values(adc_channel_values_t values)
 {
-    __disable_irq();  // Disable global interrupts
-
     if (!initialized) return;
 
+    __disable_irq();  // Disable global interrupts
+
+    ADC1->CR2 |= ADC_CR2_ADON;     // Power on ADC
+    ADC1->CR2 |= ADC_CR2_SWSTART;  // Start conversion sequence
+
     for (uint8_t i = 0; i < adc_pin_cnt; i++) {
-        uint8_t channel_idx = io_to_adc_idx(adc_pins[i]);
-
-        // Select this channel in SQR3 (1 conversion in the sequence)
-        ADC1 -> SQR3 = channel_idx;
-
-        // Enable ADC
-        ADC1 -> CR2 |= ADC_CR2_ADON;
-
-        // Start conversion
-        ADC1 -> CR2 |= ADC_CR2_SWSTART;
-
-        // Wait for end of conversion
-        while (!(ADC1->SR & ADC_SR_EOC));
-
-        // Read the result
-        values[channel_idx] = ADC1->DR;
+        while (!(ADC1->SR & ADC_SR_EOC)); // Wait for each conversion
+        uint8_t ch = io_to_adc_idx(adc_pins[i]);
+        values[ch] = ADC1->DR; // Store by ADC channel index
     }
 
     __enable_irq();  // Re-enable interrupts
