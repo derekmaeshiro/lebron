@@ -19,6 +19,6 @@ void mux_init(void){
     ASSERT(!initialized);
     initialized = true;
 }
-void switch_mux_input(mux_e mux, mux_pin_e mux_pin){
+uint16_t get_adc_value_from_mux(mux_e mux, mux_pin_e mux_pin){
     // TODO
 }
