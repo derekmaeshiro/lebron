@@ -467,6 +467,44 @@ void test_i2c_simple(void)
     }
 }
 
+#define MPU6050_ADDR     0x68              // MPU6050 base I2C address
+#define MPU6050_WHO_AM_I 0x75              // WHO_AM_I register address
+
+SUPPRESS_UNUSED
+void test_mpu6050(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    TRACE("Starting MPU6050 mini I2C test...\n");
+
+    uint8_t reg = MPU6050_WHO_AM_I;
+    uint8_t val = 0;
+
+    // Set register pointer to WHO_AM_I
+    if (!i2c_write((MPU6050_ADDR << 1), &reg, 1, NULL)) {
+        TRACE("I2C write (WHO_AM_I reg) failed\n");
+        return;
+    }
+
+    ASSERT(0);
+
+    // Read 1 byte: WHO_AM_I
+    if (!i2c_read((MPU6050_ADDR << 1), &val, 1, NULL)) {
+        TRACE("I2C read (WHO_AM_I) failed\n");
+        return;
+    }
+
+    TRACE("MPU6050 WHO_AM_I: 0x%02X\n", val);
+
+    if (val == 0x68) {
+        TRACE("MPU6050 detected! I2C is working.\n");
+    } else {
+        TRACE("Unexpected WHO_AM_I value (should be 0x68). Check wiring, power, or wake-up sequence.\n");
+    }
+}
+
 void pca9685_init(void)
 {
     // 1. Sleep

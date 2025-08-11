@@ -75,6 +75,7 @@ bool i2c_write(uint8_t addr, const uint8_t *data, uint8_t len, i2c_callback_t cb
 
     while (I2C1->SR2 & I2C_SR2_BUSY)
         ; // optional: wait for bus ready
+
     I2C1->CR1 |= I2C_CR1_START;
 
     return true;

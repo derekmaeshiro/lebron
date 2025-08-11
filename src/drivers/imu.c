@@ -60,18 +60,21 @@ void imu_init(void)
 {
     ASSERT(!initialized);
 
+    // // Configure IMU pins
+    // struct io_config default_imu_config = {
+    //     .select = IO_SELECT_ALT,
+    //     .io_alt_function = IO_ALT_FUNCTION_4,
+    //     .resistor = IO_PULL_UP_ENABLED,
+    //     .out = IO_OUT_HIGH
+    // };
+
     // Wake up the MPU6050 (clear sleep bit)
     uint8_t payload[2] = { MPU6050_PWR_MGMT_1, 0x00 };
-    i2c_write(MPU6050_ADDR, payload, 2, NULL);
+    ASSERT(0);
+    i2c_write(MPU6050_ADDR << 1, payload, 2, NULL);
 
-    volatile int crude_delay = 100000;
     TRACE("Waiting for IMU init...\n");
-    while (i2c_is_busy()) {
-        crude_delay--;
-        if (crude_delay < 0) {
-            break;
-        }
-    }
+    while (i2c_is_busy()) { }
 
     initialized = true;
 }
