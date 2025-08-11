@@ -7,6 +7,7 @@
 #include "../drivers/uart.h"
 #include "../drivers/adc.h"
 #include "../drivers/i2c.h"
+#include "../drivers/imu.h"
 #include "../drivers/servo_driver.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
@@ -589,10 +590,34 @@ void test_polling_check(void)
     // blink here if you want
 
     while (1) {
-    while (!(USART1->SR & USART_SR_TXE));
-    USART1->DR = 'U';
-    for (volatile int i = 0; i < 200000; ++i) {}
+        while (!(USART1->SR & USART_SR_TXE));
+        USART1->DR = 'U';
+        for (volatile int i = 0; i < 200000; ++i) {}
+    }
 }
+
+SUPPRESS_UNUSED
+void test_imu(void)
+{
+    test_setup();
+    i2c_init();
+    trace_init();
+    led_init();
+    led_set(LED_TEST, LED_STATE_ON);
+    TRACE("Starting IMU...");
+    imu_init();
+    led_set(LED_TEST, LED_STATE_OFF);
+    while (1) {
+        TRACE("Reading IMU...");
+        BUSY_WAIT_ms(1000);
+        // uint16_t scl = read_imu(IMU_SCL);
+        // uint16_t sda = read_imu(IMU_SDA);
+        // TRACE("SCL: %u, SDA: %u", scl, sda);
+        // BUSY_WAIT_ms(1000);
+        // led_set(LED_TEST, LED_STATE_ON);
+        // BUSY_WAIT_ms(1000);
+        // led_set(LED_TEST, LED_STATE_OFF);
+    }
 }
 
 int main(void)
