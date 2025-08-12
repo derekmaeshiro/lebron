@@ -555,11 +555,12 @@ void test_multiple_servos(void)
     while (1) { }
 }
 
-#if defined ROBOTIC_ARM
 SUPPRESS_UNUSED
 void test_analog_mux(void){
     test_setup();
     trace_init();
+
+    #if defined ROBOTIC_ARM
     analog_mux_init();
 
     TRACE("Testing analog mux...");
@@ -570,16 +571,17 @@ void test_analog_mux(void){
             BUSY_WAIT_ms(5000);
         }
     }
+    #endif
 }
-#endif
 
-#if defined ROBOTIC_ARM
 SUPPRESS_UNUSED
 void test_potentiometer(void)
 {
     test_setup();
     trace_init();
     adc_init();
+
+    #if defined ROBOTIC_ARM
     potentiometer_init();
 
     TRACE("Testing potentiometer...");
@@ -594,8 +596,8 @@ void test_potentiometer(void)
         // }
         BUSY_WAIT_ms(500);
     }
+    #endif
 }
-#endif
 
 int main(void)
 {
