@@ -555,6 +555,7 @@ void test_multiple_servos(void)
     while (1) { }
 }
 
+#if defined ROBOTIC_ARM
 SUPPRESS_UNUSED
 void test_analog_mux(void){
     test_setup();
@@ -570,7 +571,9 @@ void test_analog_mux(void){
         }
     }
 }
+#endif
 
+#if defined ROBOTIC_ARM
 SUPPRESS_UNUSED
 void test_potentiometer(void)
 {
@@ -592,6 +595,7 @@ void test_potentiometer(void)
         BUSY_WAIT_ms(500);
     }
 }
+#endif
 
 int main(void)
 {

@@ -5,6 +5,8 @@
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 
+#if defined ROBOTIC_ARM
+
 const struct potentiometer_config potentiometer_configs[] = {
     [POTENTIOMETER_1] = {
         .mux = MUX_BOARD_1,
@@ -47,3 +49,5 @@ uint16_t potentiometer_read(potentiometer_e potentiometer)
     uint16_t angle = convert_adc_value_to_angle(adc_value);
     return angle;
 }
+
+#endif
