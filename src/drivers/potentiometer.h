@@ -1,19 +1,20 @@
 #include <stdint.h>
 #include "io.h"
-#include "mux.h"
+#include "analog_mux.h"
 
 #ifndef POTENTIOMETER_BOARD_H
 #define POTENTIOMETER_BOARD_H
 
-struct potentiometer_config{
-    mux_e mux;
-    mux_pin_e mux_pin;
-}
+struct potentiometer_config
+{
+    analog_mux_e mux;
+    uint8_t mux_pin;
+};
 
 // List all potentiometers
 typedef enum {
-    MIDDLE_FINGER_DISTAL_JOINT,
-    MIDDLE_FINGER_PROXIMAL_JOINT
+    POTENTIOMETER_1,
+    POTENTIOMETER_2
 } potentiometer_e;
 
 void potentiometer_init(void);

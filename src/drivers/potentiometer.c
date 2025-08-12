@@ -1,17 +1,18 @@
 #include "adc.h"
 #include "io.h"
-#include "mux.h"
+#include "analog_mux.h"
 #include "potentiometer.h"
 #include "../common/assert_handler.h"
+#include "../common/defines.h"
 
 const struct potentiometer_config potentiometer_configs[] = {
-    [MIDDLE_FINGER_DISTAL_JOINT] = {
+    [POTENTIOMETER_1] = {
         .mux = MUX_BOARD_1,
-        .mux_pin = PIN1,
+        .mux_pin = 0,
     }, 
-    [MIDDLE_FINGER_PROXIMAL_JOINT] = {
+    [POTENTIOMETER_2] = {
         .mux = MUX_BOARD_1,
-        .mux_pin = PIN2,
+        .mux_pin = 1,
     }, 
 };
 
@@ -33,13 +34,16 @@ void potentiometer_init()
 
 uint16_t potentiometer_read(potentiometer_e potentiometer)
 {
-    adc_channel_values_t adc_values;
-    adc_get_channel_values(adc_values);
+    analog_mux_e mux = potentiometer_configs[potentiometer].mux;
+    uint8_t mux_pin = potentiometer_configs[potentiometer].mux_pin;
 
-    mux_e mux = potentiometer_configs[potentiometer].mux;
-    mux_pin_e mux_pin = potentiometer_configs[potentiometer].mux_pin;
+    toggle_analog_mux(mux, mux_pin);
 
-    uint16_t adc_value = get_adc_value_from_mux(mux, mux_pin);
+    // Flush adc channel. Then scan adc values and retrieve index based on current mux
+    mux == MUX_BOARD_1 ? adc_read_single(0) : adc_read_single(1);
+    BUSY_WAIT_ms(20);
+    uint16_t adc_value = mux == MUX_BOARD_1 ? adc_read_single(0) : adc_read_single(1);
+
     uint16_t angle = convert_adc_value_to_angle(adc_value);
     return angle;
 }

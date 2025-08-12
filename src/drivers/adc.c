@@ -49,7 +49,7 @@ void adc_init(void)
     // Fill conversion sequence starting from first conversion (SQR3 first slots)
     ADC1->SQR1 = ((adc_pin_cnt - 1) << 20);
     ADC1->SQR3 = 0;
-    for(uint8_t i = 0; i < adc_pin_cnt; i++) {
+    for (uint8_t i = 0; i < adc_pin_cnt; i++) {
         uint8_t ch = io_to_adc_idx(adc_pins[i]);
         ADC1->SQR3 |= (ch << (i * 5)); // 5 bits per channel in SQR3
     }
@@ -57,22 +57,43 @@ void adc_init(void)
     initialized = true;
 }
 
+uint16_t adc_read_single(uint8_t adc_channel)
+{
+    // Set sample time
+    if (adc_channel <= 9)
+        ADC1->SMPR2 |= (7 << (adc_channel * 3)); // max sample time
+    else
+        ADC1->SMPR1 |= (7 << ((adc_channel - 10) * 3));
+
+    // Single conversion mode, only one channel
+    ADC1->SQR1 = 0; // 1 conversion
+    ADC1->SQR3 = adc_channel & 0x1F; // channel index
+
+    ADC1->CR2 |= ADC_CR2_ADON;
+    ADC1->CR2 |= ADC_CR2_SWSTART;
+    while (!(ADC1->SR & ADC_SR_EOC))
+        ;
+    return ADC1->DR;
+}
+
 void adc_get_channel_values(adc_channel_values_t values)
 {
-    if (!initialized) return;
+    if (!initialized)
+        return;
 
-    __disable_irq();  // Disable global interrupts
+    __disable_irq(); // Disable global interrupts
 
-    ADC1->CR2 |= ADC_CR2_ADON;     // Power on ADC
-    ADC1->CR2 |= ADC_CR2_SWSTART;  // Start conversion sequence
+    ADC1->CR2 |= ADC_CR2_ADON; // Power on ADC
+    ADC1->CR2 |= ADC_CR2_SWSTART; // Start conversion sequence
 
     for (uint8_t i = 0; i < adc_pin_cnt; i++) {
-        while (!(ADC1->SR & ADC_SR_EOC)); // Wait for each conversion
+        while (!(ADC1->SR & ADC_SR_EOC))
+            ; // Wait for each conversion
         uint8_t ch = io_to_adc_idx(adc_pins[i]);
         values[ch] = ADC1->DR; // Store by ADC channel index
     }
 
-    __enable_irq();  // Re-enable interrupts
+    __enable_irq(); // Re-enable interrupts
 }
 
 /*
