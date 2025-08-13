@@ -9,7 +9,7 @@
 
 const struct potentiometer_config potentiometer_configs[] = {
     [POTENTIOMETER_1] = {
-        .mux = MUX_BOARD_1,
+        .mux = MUX_BOARD_2,
         .mux_pin = 0,
     }, 
     [POTENTIOMETER_2] = {

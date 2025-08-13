@@ -586,7 +586,7 @@ void test_potentiometer(void)
 
     TRACE("Testing potentiometer...");
     while (1) {
-        uint8_t current_potentiometer = 1;
+        uint8_t current_potentiometer = 0;
         potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
         uint16_t angle_value = potentiometer_read(potentiometers[current_potentiometer]);
         TRACE("POTENTIOMETER %u READING: %u", current_potentiometer+1, angle_value);

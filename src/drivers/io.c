@@ -99,14 +99,22 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                       IO_OUT_LOW }, // PA10 USART1_RX
     [IO_UART_TXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
                       IO_OUT_LOW }, // PA9 USART1_TX
-    [IO_ANALOG_MUX_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PB4 Output etc
-    [IO_ANALOG_MUX_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PB5
-    [IO_ANALOG_MUX_S2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PB3
-    [IO_ANALOG_MUX_S3] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PA15
+    [IO_ANALOG_MUX_1_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB4 Output etc
+    [IO_ANALOG_MUX_1_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB5
+    [IO_ANALOG_MUX_1_S2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB3
+    [IO_ANALOG_MUX_1_S3] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PA15
+    [IO_ANALOG_MUX_2_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB0
+    [IO_ANALOG_MUX_2_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PC1
+    [IO_ANALOG_MUX_2_S2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PA4
+    [IO_ANALOG_MUX_2_S3] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PA8
     [IO_ANALOG_MUX_ENABLE_1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                                  IO_OUT_LOW }, // PB12
     [IO_ANALOG_MUX_ENABLE_2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
