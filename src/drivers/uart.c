@@ -1,9 +1,12 @@
 #include "uart.h"
+#include "potentiometer.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 #include "../common/ring_buffer.h"
-#include <stm32f4xx.h>
 #include "../common/trace.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stm32f4xx.h>
 
 int count = 0;
 
@@ -159,6 +162,96 @@ void uart_print_interrupt(const char *string)
         i++;
     }
 }
+
+#if defined ROBOTIC_ARM
+static uint8_t utoa_uint(char *buf, uint32_t value)
+{
+    char tmp[10];
+    uint8_t i = 0;
+    do {
+        tmp[i++] = (value % 10) + '0';
+        value /= 10;
+    } while (value > 0);
+
+    // reverse into buf
+    for (uint8_t j = 0; j < i; j++) {
+        buf[j] = tmp[i - j - 1];
+    }
+    return i; // number of chars written
+}
+
+static uint32_t atou_uint(const char *str, uint8_t *pos)
+{
+    uint32_t value = 0;
+    while (str[*pos] >= '0' && str[*pos] <= '9') {
+        value = value * 10 + (str[*pos] - '0');
+        (*pos)++;
+    }
+    return value;
+}
+
+void serialize_potentiometer_reading(const struct potentiometer_reading *reading,
+                                     char *potentiometer_buffer, uint8_t potentiometer_buffer_size)
+{
+    uint8_t pos = 0;
+
+    // board
+    pos += utoa_uint(potentiometer_buffer + pos, reading->potentiometer_board);
+
+    // comma
+    if (pos < potentiometer_buffer_size) {
+        potentiometer_buffer[pos++] = ',';
+    }
+
+    // angle
+    pos += utoa_uint(potentiometer_buffer + pos, reading->angle);
+
+    // newline
+    if (pos < potentiometer_buffer_size) {
+        potentiometer_buffer[pos++] = '\n';
+    }
+
+    // null terminator
+    if (pos < potentiometer_buffer_size) {
+        potentiometer_buffer[pos] = '\0';
+    }
+}
+
+void deserialize_potentiometer_reading(const char *data, struct potentiometer_reading *reading)
+{
+    uint8_t idx = 0;
+
+    // Parse board
+    uint32_t board_val = atou_uint(data, &idx);
+
+    // Expect comma
+    if (data[idx] == ',') {
+        idx++;
+    } else {
+        reading->potentiometer_board = 0; // default
+        reading->angle = 0;
+        return;
+    }
+
+    // Parse angle
+    uint32_t angle_val = atou_uint(data, &idx);
+
+    // Assign values (with simple bounds check)
+    reading->potentiometer_board = (uint8_t)board_val;
+    reading->angle = (uint16_t)angle_val;
+}
+
+void uart_send_potentiometer_readings(const struct potentiometer_reading *readings,
+                                      uint8_t reading_count)
+{
+    uint8_t MAX_READING_BUFFER_SIZE = 64;
+    for (uint8_t i = 0; i < reading_count; i++) {
+        char readings_buffer[MAX_READING_BUFFER_SIZE];
+        serialize_potentiometer_reading(&readings[i], readings_buffer, MAX_READING_BUFFER_SIZE);
+        uart_print_interrupt(readings_buffer);
+    }
+}
+#endif
 
 void uart_init_assert(void)
 {

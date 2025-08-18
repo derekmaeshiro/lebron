@@ -600,6 +600,26 @@ void test_potentiometer(void)
     }
     #endif
 }
+SUPPRESS_UNUSED
+void test_read_all_potentiometers(void)
+{
+    test_setup();
+    trace_init();
+    adc_init();
+
+    #if defined ROBOTIC_ARM
+    potentiometer_init();
+
+    TRACE("Testing potentiometer...");
+    while (1) {
+        uint8_t i = 0;
+        uint16_t angles[2];
+        read_all_potentiometers(angles);
+        TRACE("POTENTIOMETER %u READING: %u", i, angles[i]);
+        BUSY_WAIT_ms(500);
+    }
+    #endif
+}
 
 void delay(volatile uint32_t count) {
     while (count--);
@@ -659,6 +679,52 @@ void test_polling_check(void)
     USART1->DR = 'U';
     for (volatile int i = 0; i < 200000; ++i) {}
 }
+}
+
+SUPPRESS_UNUSED
+void test_uart_potentiometer_readings(void){
+    test_setup();
+    trace_init();
+    adc_init();
+    #if defined ROBOTIC_ARM
+    potentiometer_init();
+    // const struct potentiometer_reading dummy_readings[] = {
+    //     { .potentiometer_board = POTENTIOMETER_1, .angle = 45 },
+    //     { .potentiometer_board = POTENTIOMETER_2, .angle = 90 },
+    // };
+    uint16_t angles[2];
+    read_all_potentiometers(angles);
+    struct potentiometer_reading potentiometer_readings[2];
+    for(int i=0; i<2; i++){
+        potentiometer_readings[i].potentiometer_board = (potentiometer_e)i;
+        potentiometer_readings[i].angle = angles[i];
+        TRACE("Potentiometer %u angle: %u", i, angles[i]);
+    }
+    while(1){
+        uart_send_potentiometer_readings(potentiometer_readings, 2);
+        BUSY_WAIT_ms(2000);
+    }
+    #endif
+}
+
+SUPPRESS_UNUSED
+void test_uart_potentiometers_deserialize(void){
+    #if defined ROBOTIC_ARM
+    test_setup();
+    uart_init();
+    const char *test_strings[] = {
+        "0,45\n",
+        "1,90\n",
+        "0,360\n",
+        "1,180\n",
+    };
+    struct potentiometer_reading reading;
+    for(uint8_t i=0; i<ARRAY_SIZE(test_strings); i++){
+        deserialize_potentiometer_reading(test_strings[i], &reading);
+        TRACE("Deserialized: Board=%u Angle=%u from \"%s\"", reading.potentiometer_board, reading.angle, test_strings[i]);
+    }
+    while(1) {}
+    #endif
 }
 
 int main(void)

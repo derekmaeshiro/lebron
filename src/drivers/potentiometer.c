@@ -4,6 +4,7 @@
 #include "potentiometer.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
+#include "../common/trace.h"
 
 #if defined ROBOTIC_ARM
 
@@ -50,4 +51,10 @@ uint16_t potentiometer_read(potentiometer_e potentiometer)
     return angle;
 }
 
+void read_all_potentiometers(uint16_t *angles)
+{
+    for (uint8_t i = 0; i < ARRAY_SIZE(potentiometer_configs); i++) {
+        angles[i] = potentiometer_read((potentiometer_e)i);
+    }
+}
 #endif
