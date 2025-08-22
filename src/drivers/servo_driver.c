@@ -23,7 +23,7 @@ static void servo_driver_set_pwm_channel(uint8_t slave_address, uint8_t channel,
     while (i2c_is_busy()) { }
 }
 
-uint16_t angle_to_off_converter(uint8_t angle)
+uint16_t angle_to_off_converter(uint16_t angle)
 {
     if (angle > 180)
         angle = 180;
@@ -35,7 +35,7 @@ uint16_t angle_to_off_converter(uint8_t angle)
     return off_count;
 }
 
-void servo_driver_set_servo_angle(servo_driver_t *driver, servo_channel_t channel, uint8_t angle)
+void servo_driver_set_servo_angle(servo_driver_t *driver, servo_channel_t channel, uint16_t angle)
 {
     servo_driver_set_pwm_channel(driver->slave_address, channel, 0, angle_to_off_converter(angle));
     driver->servos[channel].servo_angle = angle;

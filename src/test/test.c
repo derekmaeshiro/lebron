@@ -727,6 +727,32 @@ void test_uart_potentiometers_deserialize(void){
     #endif
 }
 
+SUPPRESS_UNUSED
+void test_potentiometer_to_servo(void){
+    #if defined ROBOTIC_ARM
+        test_setup();
+        uart_init();
+        trace_init();
+        i2c_init();
+        TRACE("Testing potentiometer to servo...");
+
+        adc_init();
+        potentiometer_init();
+        uint8_t current_potentiometer = 0;
+        potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
+
+        servo_driver_t driver = { 0 };
+        servo_channel_t channel = 0;
+        servo_driver_init(&driver, 0x40);
+
+        while(1){
+            uint16_t angle_value = potentiometer_read(potentiometers[current_potentiometer]);
+            TRACE("POTENTIOMETER %u READING: %u", current_potentiometer+1, angle_value);
+            servo_driver_set_servo_angle(&driver, channel, angle_value);
+            BUSY_WAIT_ms(100);
+        }
+    #endif
+}
 int main(void)
 {
     TEST();
