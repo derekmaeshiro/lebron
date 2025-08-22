@@ -71,6 +71,8 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/led.c \
 		  src/drivers/io.c \
 		  src/drivers/adc.c \
+		  src/drivers/analog_mux.c \
+		  src/drivers/potentiometer.c \
 		  src/drivers/pwm.c \
 		  src/drivers/servo.c \
 		  src/drivers/mcu_init.c \
