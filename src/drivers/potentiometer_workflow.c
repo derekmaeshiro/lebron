@@ -7,7 +7,10 @@
 #include "../common/trace.h"
 #include <stdbool.h>
 
+#if defined ROBOTIC_ARM
 static servo_driver_t driver = { 0 };
+#endif
+
 bool workflow_enabled = false;
 static bool initialized = false;
 void potentiometer_workflow_init(void)
