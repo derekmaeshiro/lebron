@@ -17,6 +17,6 @@ void toggle_analog_mux(analog_mux_e mux, uint8_t mux_pin);
 
 #if defined ARM_SLEEVE
 void toggle_analog_mux(uint8_t mux_pin);
-#endif 
+#endif
 
 #endif

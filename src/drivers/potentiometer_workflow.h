@@ -3,7 +3,8 @@
 
 #ifndef POTENTIOMETER_WORKFLOW_H
 #define POTENTIOMETER_WORKFLOW_H
-extern bool workflow_enabled;;
+extern bool workflow_enabled;
+;
 void potentiometer_workflow_init(void);
 void potentiometer_workflow_enable(void);
 void potentiometer_workflow_disable(void);

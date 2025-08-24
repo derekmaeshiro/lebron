@@ -45,4 +45,3 @@ void potentiometer_init(void);
 uint16_t potentiometer_read(potentiometer_e potentiometer);
 void read_all_potentiometers(uint16_t *angles);
 #endif
-

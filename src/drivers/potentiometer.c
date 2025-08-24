@@ -28,20 +28,13 @@ const struct potentiometer_config potentiometer_configs[] = {
 
 #if defined ARM_SLEEVE
 const struct potentiometer_config potentiometer_configs[] = {
-    [THUMB_PROXIMAL] = { .mux_pin = 0 },
-    [THUMB_DISTAL] = { .mux_pin = 1 },
-    [THUMB_METACARPAL] = { .mux_pin = 2 },
-    [INDEX_PROXIMAL] = { .mux_pin = 3 },
-    [INDEX_DISTAL] = { .mux_pin = 4 },
-    [INDEX_METACARPAL] = { .mux_pin = 5 },
-    [MIDDLE_PROXIMAL] = { .mux_pin = 6 },
-    [MIDDLE_DISTAL] = { .mux_pin = 7 },
-    [MIDDLE_METACARPAL] = { .mux_pin = 8 },
-    [RING_PROXIMAL] = { .mux_pin = 9 },
-    [RING_DISTAL] = { .mux_pin = 10 },
-    [RING_METACARPAL] = { .mux_pin = 12 },
-    [PINKY_PROXIMAL] = { .mux_pin = 13 },
-    [PINKY_DISTAL] = { .mux_pin = 14 },
+    [THUMB_PROXIMAL] = { .mux_pin = 0 },    [THUMB_DISTAL] = { .mux_pin = 1 },
+    [THUMB_METACARPAL] = { .mux_pin = 2 },  [INDEX_PROXIMAL] = { .mux_pin = 3 },
+    [INDEX_DISTAL] = { .mux_pin = 4 },      [INDEX_METACARPAL] = { .mux_pin = 5 },
+    [MIDDLE_PROXIMAL] = { .mux_pin = 6 },   [MIDDLE_DISTAL] = { .mux_pin = 7 },
+    [MIDDLE_METACARPAL] = { .mux_pin = 8 }, [RING_PROXIMAL] = { .mux_pin = 9 },
+    [RING_DISTAL] = { .mux_pin = 10 },      [RING_METACARPAL] = { .mux_pin = 12 },
+    [PINKY_PROXIMAL] = { .mux_pin = 13 },   [PINKY_DISTAL] = { .mux_pin = 14 },
     [PINKY_METACARPAL] = { .mux_pin = 15 },
 };
 #endif
@@ -64,7 +57,7 @@ void potentiometer_init()
 
 uint16_t potentiometer_read(potentiometer_e potentiometer)
 {
-    #if defined ROBOTIC_ARM
+#if defined ROBOTIC_ARM
     analog_mux_e mux = potentiometer_configs[potentiometer].mux;
     uint8_t mux_pin = potentiometer_configs[potentiometer].mux_pin;
     toggle_analog_mux(mux, mux_pin);
@@ -75,10 +68,10 @@ uint16_t potentiometer_read(potentiometer_e potentiometer)
     uint16_t adc_value = mux == MUX_BOARD_1 ? adc_read_single(0) : adc_read_single(1);
 
     uint16_t angle = convert_adc_value_to_angle(adc_value);
-    return angle;   
-    #endif
+    return angle;
+#endif
 
-    #if defined ARM_SLEEVE
+#if defined ARM_SLEEVE
     uint8_t mux_pin = potentiometer_configs[potentiometer].mux_pin;
     toggle_analog_mux(mux_pin);
 
@@ -88,8 +81,8 @@ uint16_t potentiometer_read(potentiometer_e potentiometer)
     uint16_t adc_value = adc_read_single(0);
 
     uint16_t angle = convert_adc_value_to_angle(adc_value);
-    return angle;   
-    #endif
+    return angle;
+#endif
 }
 
 void read_all_potentiometers(uint16_t *angles)
