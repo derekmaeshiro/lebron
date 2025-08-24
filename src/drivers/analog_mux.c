@@ -5,7 +5,6 @@
 #include "../common/trace.h"
 #include <stdbool.h>
 
-#if defined ROBOTIC_ARM
 static bool initialized = false;
 void analog_mux_init(void)
 {
@@ -13,6 +12,7 @@ void analog_mux_init(void)
     initialized = true;
 }
 
+#if defined ROBOTIC_ARM
 void toggle_analog_mux(analog_mux_e mux, uint8_t mux_pin)
 {
     if (mux == MUX_BOARD_1) {
@@ -57,6 +57,33 @@ void toggle_analog_mux(analog_mux_e mux, uint8_t mux_pin)
         } else {
             io_set_out(IO_ANALOG_MUX_2_S3, IO_OUT_LOW);
         }
+    }
+    BUSY_WAIT_ms(20);
+}
+#endif
+
+#if defined ARM_SLEEVE
+void toggle_analog_mux(uint8_t mux_pin)
+{
+    if (mux_pin & 0x01) {
+        io_set_out(IO_ANALOG_MUX_S0, IO_OUT_HIGH);
+    } else {
+        io_set_out(IO_ANALOG_MUX_S0, IO_OUT_LOW);
+    }
+    if (mux_pin & 0x02) {
+        io_set_out(IO_ANALOG_MUX_S1, IO_OUT_HIGH);
+    } else {
+        io_set_out(IO_ANALOG_MUX_S1, IO_OUT_LOW);
+    }
+    if (mux_pin & 0x04) {
+        io_set_out(IO_ANALOG_MUX_S2, IO_OUT_HIGH);
+    } else {
+        io_set_out(IO_ANALOG_MUX_S2, IO_OUT_LOW);
+    }
+    if (mux_pin & 0x08) {
+        io_set_out(IO_ANALOG_MUX_S3, IO_OUT_HIGH);
+    } else {
+        io_set_out(IO_ANALOG_MUX_S3, IO_OUT_LOW);
     }
     BUSY_WAIT_ms(20);
 }

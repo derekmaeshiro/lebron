@@ -6,17 +6,22 @@
 #include "../common/defines.h"
 #include "../common/trace.h"
 
-#if defined ROBOTIC_ARM
-
 const struct potentiometer_config potentiometer_configs[] = {
-    [POTENTIOMETER_1] = {
-        .mux = MUX_BOARD_1,
-        .mux_pin = 0,
-    }, 
-    [POTENTIOMETER_2] = {
-        .mux = MUX_BOARD_1,
-        .mux_pin = 1,
-    }, 
+    [THUMB_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 0 },
+    [THUMB_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 1 },
+    [THUMB_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 2 },
+    [INDEX_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 3 },
+    [INDEX_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 4 },
+    [INDEX_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 5 },
+    [MIDDLE_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 6 },
+    [MIDDLE_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 7 },
+    [MIDDLE_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 8 },
+    [RING_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 9 },
+    [RING_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 10 },
+    [RING_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 12 },
+    [PINKY_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 13 },
+    [PINKY_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 14 },
+    [PINKY_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 15 },
 };
 
 uint16_t convert_adc_value_to_angle(uint16_t adc_value)
@@ -57,4 +62,3 @@ void read_all_potentiometers(uint16_t *angles)
         angles[i] = potentiometer_read((potentiometer_e)i);
     }
 }
-#endif
