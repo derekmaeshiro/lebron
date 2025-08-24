@@ -73,8 +73,8 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/adc.c \
 		  src/drivers/analog_mux.c \
 		  src/drivers/potentiometer.c \
+		  src/drivers/potentiometer_workflow.c \
 		  src/drivers/pwm.c \
-		  src/drivers/servo.c \
 		  src/drivers/mcu_init.c \
 		  src/drivers/uart.c \
 		  src/drivers/i2c.c \

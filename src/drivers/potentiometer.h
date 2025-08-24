@@ -5,11 +5,20 @@
 #ifndef POTENTIOMETER_BOARD_H
 #define POTENTIOMETER_BOARD_H
 
+#if defined ROBOTIC_ARM
 struct potentiometer_config
 {
     analog_mux_e mux;
     uint8_t mux_pin;
 };
+#endif
+
+#if defined ARM_SLEEVE
+struct potentiometer_config
+{
+    uint8_t mux_pin;
+};
+#endif
 
 // List all potentiometers
 // TODO: I'm assuming potentiometer_e is the same in ROBOTIC_ARM and ARM_SLEEVE. Adjust if needed
@@ -29,6 +38,7 @@ typedef enum {
     PINKY_PROXIMAL,
     PINKY_DISTAL,
     PINKY_METACARPAL,
+    NUM_OF_POTENTIOMETERS, // Always keep last: represents total number of potentiometers
 } potentiometer_e;
 
 void potentiometer_init(void);
