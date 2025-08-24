@@ -163,7 +163,6 @@ void uart_print_interrupt(const char *string)
     }
 }
 
-#if defined ROBOTIC_ARM
 static uint8_t utoa_uint(char *buf, uint32_t value)
 {
     char tmp[10];
@@ -251,7 +250,6 @@ void uart_send_potentiometer_readings(const struct potentiometer_reading *readin
         uart_print_interrupt(readings_buffer);
     }
 }
-#endif
 
 void uart_init_assert(void)
 {

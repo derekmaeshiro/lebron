@@ -4,6 +4,7 @@
 #include "../drivers/io.h"
 #include "../drivers/pwm.h"
 #include "../drivers/potentiometer.h"
+#include "../drivers/potentiometer_workflow.h"
 #include "../drivers/mcu_init.h"
 #include "../drivers/uart.h"
 #include "../drivers/adc.h"
@@ -589,7 +590,7 @@ void test_potentiometer(void)
     TRACE("Testing potentiometer...");
     while (1) {
         uint8_t current_potentiometer = 0;
-        potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
+        potentiometer_e potentiometers[] = { THUMB_PROXIMAL, THUMB_DISTAL };
         uint16_t angle_value = potentiometer_read(potentiometers[current_potentiometer]);
         TRACE("POTENTIOMETER %u READING: %u", current_potentiometer+1, angle_value);
         // for (uint8_t i = 0; i < ARRAY_SIZE(potentiometers); i++) {
@@ -686,7 +687,6 @@ void test_uart_potentiometer_readings(void){
     test_setup();
     trace_init();
     adc_init();
-    #if defined ROBOTIC_ARM
     potentiometer_init();
     // const struct potentiometer_reading dummy_readings[] = {
     //     { .potentiometer_board = POTENTIOMETER_1, .angle = 45 },
@@ -704,7 +704,6 @@ void test_uart_potentiometer_readings(void){
         uart_send_potentiometer_readings(potentiometer_readings, 2);
         BUSY_WAIT_ms(2000);
     }
-    #endif
 }
 
 SUPPRESS_UNUSED
@@ -739,7 +738,7 @@ void test_potentiometer_to_servo(void){
         adc_init();
         potentiometer_init();
         uint8_t current_potentiometer = 0;
-        potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
+        potentiometer_e potentiometers[] = { THUMB_PROXIMAL, THUMB_DISTAL };
 
         servo_driver_t driver = { 0 };
         servo_channel_t channel = 0;
@@ -752,6 +751,34 @@ void test_potentiometer_to_servo(void){
             BUSY_WAIT_ms(100);
         }
     #endif
+}
+
+SUPPRESS_UNUSED
+void test_potentiometer_workflow(void)
+{
+    #if defined ARM_SLEEVE
+    test_setup();
+    trace_init();
+    potentiometer_workflow_init();
+    TRACE("Testing potentiometer_workflow for ARM_SLEEVE...");
+    while(1){
+        potentiometer_workflow_run();
+        BUSY_WAIT_ms(1000);
+    }
+    #endif
+    #if defined ROBOTIC_ARM
+    test_setup();
+    trace_init();
+    potentiometer_workflow_init();
+    potentiometer_workflow_enable();
+    TRACE("Testing potentiometer_workflow for ROBOTIC_ARM...");
+    while(1){
+        potentiometer_workflow_run();
+        BUSY_WAIT_ms(1000);
+        TRACE("Loop completed...");
+    }
+    #endif
+
 }
 int main(void)
 {

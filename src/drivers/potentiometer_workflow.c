@@ -16,8 +16,6 @@ static bool initialized = false;
 void potentiometer_workflow_init(void)
 {
     ASSERT(!initialized);
-
-    trace_init();
 // Initialize the dependent drivers
 #if defined ARM_SLEEVE
     adc_init();
@@ -48,6 +46,7 @@ void potentiometer_workflow_disable(void)
     workflow_enabled = false;
 }
 
+// TODO: Verify this function works on an ARM_SLEEVE board
 #if defined ARM_SLEEVE
 void potentiometer_workflow_run(void)
 {
@@ -73,9 +72,10 @@ void potentiometer_workflow_run(void)
     if (!workflow_enabled) {
         return;
     }
-    // TODO: Replace the dummy readings with actual readings
+    // TODO: Replace the dummy readings with actual readings. This is step 4, where the ROBOTIC_ARM
+    // controller needs to somehow "listen" to the readings sent over by bluetooth
     const char *sent_readings[] = {
-        "0,45\n", "1,90\n", "2,70\n",   "3,180\n",  "4,30\n",  "5,60\n",  "6,120\n", "7,150\n",
+        "0,90\n", "1,90\n", "2,70\n",   "3,180\n",  "4,30\n",  "5,60\n",  "6,120\n", "7,150\n",
         "8,15\n", "9,75\n", "10,135\n", "11,165\n", "12,25\n", "13,55\n", "14,95\n", "15,105\n",
     };
 
