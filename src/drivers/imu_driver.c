@@ -12,7 +12,7 @@
 static void mpu6050_init(uint8_t slave_address)
 {
     // Wake up MPU6050 (write 0x00 to register 0x6B)
-    uint8_t buf[2] = { 0x6B, 0x00 };
+    const uint8_t buf[2] = { 0x6B, 0x00 };
     i2c_write(slave_address, buf, 2, NULL);
     while (i2c_is_busy()) { }
     // Additional configuration as needed
@@ -42,7 +42,7 @@ void imu_driver_init(imu_driver_t *imu_driver, uint8_t slave_address)
     }
 }
 
-void imu_driver_select_channel(imu_driver_t *imu_driver, imu_channel_t channel)
+void imu_driver_select_channel(const imu_driver_t *imu_driver, imu_channel_t channel)
 {
     uint8_t slave_address = imu_driver->slave_address;
     uint8_t control = 1 << channel;
@@ -51,7 +51,7 @@ void imu_driver_select_channel(imu_driver_t *imu_driver, imu_channel_t channel)
 }
 
 // Get data from IMU
-void imu_driver_read_all(imu_driver_t *imu_driver, imu_channel_t channel, int16_t *ax, int16_t *ay,
+void imu_driver_read_all(const imu_driver_t *imu_driver, imu_channel_t channel, int16_t *ax, int16_t *ay,
                          int16_t *az, int16_t *gx, int16_t *gy, int16_t *gz)
 {
     imu_driver_select_channel(imu_driver, channel);
@@ -76,7 +76,7 @@ void imu_driver_read_all(imu_driver_t *imu_driver, imu_channel_t channel, int16_
 int16_t gx_bias[IMU_DRIVER_MAX_CHANNELS] = { 0, 0 }, gy_bias[IMU_DRIVER_MAX_CHANNELS] = { 0, 0 },
         gz_bias[IMU_DRIVER_MAX_CHANNELS] = { 0, 0 };
 
-void calibrate_imus(imu_driver_t *imu_driver)
+void calibrate_imus(const imu_driver_t *imu_driver)
 {
     for (int channel = 0; channel < 2; channel++) {
         int32_t gx_sum = 0, gy_sum = 0, gz_sum = 0;

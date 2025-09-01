@@ -3,6 +3,7 @@
 #include "../drivers/led.h"
 #include "../drivers/io.h"
 #include "../drivers/pwm.h"
+#include "../drivers/potentiometer.h"
 #include "../drivers/mcu_init.h"
 #include "../drivers/uart.h"
 #include "../drivers/adc.h"
@@ -266,7 +267,7 @@ static void test_uart_put_char_interrupt(void)
     // while (*msg) {
     //     uart_putchar_interrupt(*msg++);
     // }
-  
+
     while (1) { }
 }
 
@@ -321,17 +322,15 @@ static void test_pwm(void)
     led_init();
 #if defined ROBOTIC_ARM
     pwm_init();
-    pwm_e pwms[] = { PWM_DISTAL_INTERPHALANGEAL_JOINT,
-                             PWM_PROXIMAL_INTERPHALANGEAL_JOINT,
-                             PWM_METACARPOPHALANGEAL_JOINT_1,
-                             PWM_METACARPOPHALANGEAL_JOINT_2 };
+    pwm_e pwms[] = { PWM_DISTAL_INTERPHALANGEAL_JOINT, PWM_PROXIMAL_INTERPHALANGEAL_JOINT,
+                     PWM_METACARPOPHALANGEAL_JOINT_1, PWM_METACARPOPHALANGEAL_JOINT_2 };
     const int duty_cycles[] = { 0, 20, 40, 60, 80, 100 };
     const uint16_t wait_time = 3000;
     while (1) {
         for (uint8_t i = 0; i < 6; i++) {
             TRACE("Set duty cycle to %d for %d ms", duty_cycles[i], wait_time);
             led_set(LED_TEST, LED_STATE_ON);
-            for(uint8_t j=0; j<ARRAY_SIZE(pwms); j++) {
+            for (uint8_t j = 0; j < ARRAY_SIZE(pwms); j++) {
                 pwm_set_duty_cycle(pwms[j], duty_cycles[i]);
             }
             BUSY_WAIT_ms(wait_time);
@@ -339,7 +338,7 @@ static void test_pwm(void)
             // Turn off the PWM channel and toggle off LED
             TRACE("Turning off PWM and waiting for %d ms", wait_time);
             led_set(LED_TEST, LED_STATE_OFF);
-            for(uint8_t j=0; j<ARRAY_SIZE(pwms); j++) {
+            for (uint8_t j = 0; j < ARRAY_SIZE(pwms); j++) {
                 pwm_set_duty_cycle(pwms[j], 0);
             }
             BUSY_WAIT_ms(wait_time);
@@ -355,13 +354,19 @@ static void test_adc(void)
     trace_init();
     led_init();
     adc_init();
-    while(1){
-        adc_channel_values_t values;
-        adc_get_channel_values(values);
-        for(uint8_t i=0; i<ARRAY_SIZE(values); i++){
-            TRACE("ADC ch %u: %u", i, values[i]);
-        }
+    TRACE("Testing adc...");
+    while (1) {
+        uint8_t channel = 0;
+        uint16_t adc_value = adc_read_single(channel);
+        TRACE("ADC ch %u: %u", channel, adc_value);
         BUSY_WAIT_ms(2000);
+        // adc_channel_values_t values;
+        // adc_get_channel_values(values);
+        // for (uint8_t i = 0; i < ARRAY_SIZE(values); i++) {
+        //     TRACE("ADC ch %u: %u", i, values[i]);
+        // }
+        // TRACE("\n");
+        // BUSY_WAIT_ms(2000);
     }
 }
 
@@ -371,17 +376,20 @@ volatile uint8_t g_pca9685_last_read = 0;
 
 void pca9685_write_reg(uint8_t reg, uint8_t val)
 {
-    uint8_t payload[2] = {reg, val};
+    uint8_t payload[2] = { reg, val };
     i2c_write(0x40, payload, 2, NULL);
-    while (i2c_is_busy());  // wait for write to finish
+    while (i2c_is_busy())
+        ; // wait for write to finish
 }
 
 void pca9685_read_reg(uint8_t reg)
 {
-    i2c_write(0x40, &reg, 1, NULL);           // write reg address
-    while (i2c_is_busy());                   // wait for write to finish
-    i2c_read(0x40, (uint8_t*)&g_pca9685_last_read, 1, NULL);  // read value
-    while (i2c_is_busy());                   // wait for read to finish
+    i2c_write(0x40, &reg, 1, NULL); // write reg address
+    while (i2c_is_busy())
+        ; // wait for write to finish
+    i2c_read(0x40, (uint8_t *)&g_pca9685_last_read, 1, NULL); // read value
+    while (i2c_is_busy())
+        ; // wait for read to finish
 }
 
 SUPPRESS_UNUSED
@@ -403,12 +411,13 @@ static void test_pca9685_readwrite(void)
 // Just write some bytes to a device and confirm no error
 bool test_i2c_write_only(uint8_t addr)
 {
-    uint8_t data[3] = {0x00, 0x55, 0xAA};  // example payload
+    uint8_t data[3] = { 0x00, 0x55, 0xAA }; // example payload
     if (!i2c_write(addr, data, 3, NULL)) {
         TRACE("I2C busy, write failed\n");
         return false;
     }
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
     TRACE("I2C write only test complete\n");
     return true;
 }
@@ -420,7 +429,8 @@ bool test_i2c_read_only(uint8_t addr, uint8_t *val)
         TRACE("I2C busy, read failed\n");
         return false;
     }
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
     TRACE("I2C read only test value = 0x%x\n", *val);
     return true;
 }
@@ -428,10 +438,14 @@ bool test_i2c_read_only(uint8_t addr, uint8_t *val)
 // Write register address, then read 1 byte back (blocking, simple)
 bool test_i2c_write_then_read(uint8_t addr, uint8_t reg, uint8_t *val)
 {
-    if (!i2c_write(addr, &reg, 1, NULL)) return false;
-    while (i2c_is_busy());
-    if (!i2c_read(addr, val, 1, NULL)) return false;
-    while (i2c_is_busy());
+    if (!i2c_write(addr, &reg, 1, NULL))
+        return false;
+    while (i2c_is_busy())
+        ;
+    if (!i2c_read(addr, val, 1, NULL))
+        return false;
+    while (i2c_is_busy())
+        ;
     TRACE("I2C write-then-read test reg=0x%x val=0x%x\n", reg, *val);
     return true;
 }
@@ -445,7 +459,7 @@ void test_i2c_loop_read(uint8_t addr, uint8_t reg)
         } else {
             TRACE("I2C loop read failed\n");
         }
-        BUSY_WAIT_ms(1000);  // your delay function
+        BUSY_WAIT_ms(1000); // your delay function
     }
 }
 
@@ -461,12 +475,14 @@ void test_i2c_simple(void)
     // Write 0xAA to register 0x06
     uint8_t payload[2] = { 0x06, val };
     bool ok1 = i2c_write(0x40, payload, 2, NULL);
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
 
     // Read it back
     val = 0;
     bool ok2 = test_i2c_write_then_read(0x40, 0x06, &val);
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
 
     if (ok1 && ok2) {
         TRACE("LED0_ON_L = 0x%02X\n", val);
@@ -480,31 +496,35 @@ void pca9685_init(void)
     // 1. Sleep
     uint8_t sleep[] = { 0x00, 0x10 }; // MODE1 = sleep
     i2c_write(0x40, sleep, 2, NULL);
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
 
     // 2. Set prescaler for 50Hz PWM
     uint8_t prescale[] = { 0xFE, 121 }; // PRESCALE = 121
     i2c_write(0x40, prescale, 2, NULL);
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
 
     // 3. Wake up with auto-increment
     uint8_t wake[] = { 0x00, 0x20 }; // MODE1 = auto-increment
     i2c_write(0x40, wake, 2, NULL);
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
 }
 
 // Send PWM pulse to channel 0 (LED0_ON_L = 0x06)
 void pca9685_set_pwm_ch0(uint16_t on, uint16_t off)
 {
     uint8_t payload[5];
-    payload[0] = 0x06;        // LED0_ON_L register
+    payload[0] = 0x06; // LED0_ON_L register
     payload[1] = on & 0xFF;
     payload[2] = on >> 8;
     payload[3] = off & 0xFF;
     payload[4] = off >> 8;
 
     i2c_write(0x40, payload, 5, NULL);
-    while (i2c_is_busy());
+    while (i2c_is_busy())
+        ;
 }
 
 void test_servo_simple(void)
@@ -539,9 +559,75 @@ void test_multiple_servos(void)
 {
     test_setup();
     i2c_init();
-    servo_driver_t driver = {0};
-    servo_driver_init(&driver, 0x40);  // Includes set-all to 90 deg
-    while (1) {}
+    servo_driver_t driver = { 0 };
+    servo_driver_init(&driver, 0x40); // Includes set-all to 90 deg
+    // Next line guarantees channel 0 gets set again:
+    // servo_driver_set_servo_angle(&driver, 0, 90);
+    while (1) { }
+}
+
+SUPPRESS_UNUSED
+void test_analog_mux(void){
+    test_setup();
+    trace_init();
+
+    #if defined ROBOTIC_ARM
+    analog_mux_init();
+
+    TRACE("Testing analog mux...");
+    while(1){
+        for(uint8_t i=0; i<3; i++){
+            TRACE("Toggling to pin %u", i);
+            toggle_analog_mux(MUX_BOARD_1, i);
+            BUSY_WAIT_ms(5000);
+        }
+    }
+    #endif
+}
+
+SUPPRESS_UNUSED
+void test_potentiometer(void)
+{
+    test_setup();
+    trace_init();
+    adc_init();
+
+    #if defined ROBOTIC_ARM
+    potentiometer_init();
+
+    TRACE("Testing potentiometer...");
+    while (1) {
+        uint8_t current_potentiometer = 0;
+        potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
+        uint16_t angle_value = potentiometer_read(potentiometers[current_potentiometer]);
+        TRACE("POTENTIOMETER %u READING: %u", current_potentiometer+1, angle_value);
+        // for (uint8_t i = 0; i < ARRAY_SIZE(potentiometers); i++) {
+        //     uint16_t angle_value = potentiometer_read(potentiometers[i]);
+        //     TRACE("POTENTIOMETER %u READING: %u", i + 1, angle_value);
+        // }
+        BUSY_WAIT_ms(500);
+    }
+    #endif
+}
+SUPPRESS_UNUSED
+void test_read_all_potentiometers(void)
+{
+    test_setup();
+    trace_init();
+    adc_init();
+
+    #if defined ROBOTIC_ARM
+    potentiometer_init();
+
+    TRACE("Testing potentiometer...");
+    while (1) {
+        uint8_t i = 0;
+        uint16_t angles[2];
+        read_all_potentiometers(angles);
+        TRACE("POTENTIOMETER %u READING: %u", i, angles[i]);
+        BUSY_WAIT_ms(500);
+    }
+    #endif
 }
 
 void delay(volatile uint32_t count) {
@@ -837,6 +923,78 @@ else
 }
 }
 
+SUPPRESS_UNUSED
+void test_uart_potentiometer_readings(void){
+    test_setup();
+    trace_init();
+    adc_init();
+    #if defined ROBOTIC_ARM
+    potentiometer_init();
+    // const struct potentiometer_reading dummy_readings[] = {
+    //     { .potentiometer_board = POTENTIOMETER_1, .angle = 45 },
+    //     { .potentiometer_board = POTENTIOMETER_2, .angle = 90 },
+    // };
+    uint16_t angles[2];
+    read_all_potentiometers(angles);
+    struct potentiometer_reading potentiometer_readings[2];
+    for(int i=0; i<2; i++){
+        potentiometer_readings[i].potentiometer_board = (potentiometer_e)i;
+        potentiometer_readings[i].angle = angles[i];
+        TRACE("Potentiometer %u angle: %u", i, angles[i]);
+    }
+    while(1){
+        uart_send_potentiometer_readings(potentiometer_readings, 2);
+        BUSY_WAIT_ms(2000);
+    }
+    #endif
+}
+
+SUPPRESS_UNUSED
+void test_uart_potentiometers_deserialize(void){
+    #if defined ROBOTIC_ARM
+    test_setup();
+    uart_init();
+    const char *test_strings[] = {
+        "0,45\n",
+        "1,90\n",
+        "0,360\n",
+        "1,180\n",
+    };
+    struct potentiometer_reading reading;
+    for(uint8_t i=0; i<ARRAY_SIZE(test_strings); i++){
+        deserialize_potentiometer_reading(test_strings[i], &reading);
+        TRACE("Deserialized: Board=%u Angle=%u from \"%s\"", reading.potentiometer_board, reading.angle, test_strings[i]);
+    }
+    while(1) {}
+    #endif
+}
+
+SUPPRESS_UNUSED
+void test_potentiometer_to_servo(void){
+    #if defined ROBOTIC_ARM
+        test_setup();
+        uart_init();
+        trace_init();
+        i2c_init();
+        TRACE("Testing potentiometer to servo...");
+
+        adc_init();
+        potentiometer_init();
+        uint8_t current_potentiometer = 0;
+        potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
+
+        servo_driver_t driver = { 0 };
+        servo_channel_t channel = 0;
+        servo_driver_init(&driver, 0x40);
+
+        while(1){
+            uint16_t angle_value = potentiometer_read(potentiometers[current_potentiometer]);
+            TRACE("POTENTIOMETER %u READING: %u", current_potentiometer+1, angle_value);
+            servo_driver_set_servo_angle(&driver, channel, angle_value);
+            BUSY_WAIT_ms(100);
+        }
+    #endif
+}
 int main(void)
 {
     TEST();

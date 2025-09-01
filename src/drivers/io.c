@@ -1,6 +1,7 @@
 #include "io.h"
 #include "../common/defines.h"
 #include "../common/assert_handler.h"
+#include "../common/trace.h"
 #include <stm32f4xx.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -94,28 +95,32 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                      IO_OUT_HIGH }, // PB8 I2C1_SCL
     [IO_I2C_SDA] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_4, IO_PULL_UP_ENABLED,
                      IO_OUT_HIGH }, // PB9 I2C1_SDA
-    [IO_UART1_RXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
-                       IO_OUT_LOW }, // PA10 USART1_RX
-    [IO_UART1_TXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
-                       IO_OUT_LOW }, // PA9 USART1_TX
-    [IO_ANALOG_MUX_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PB4 Output etc
-    [IO_ANALOG_MUX_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PB5
-    [IO_ANALOG_MUX_S2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PB3
-    [IO_ANALOG_MUX_S3] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                           IO_OUT_LOW }, // PA15
+    [IO_UART_RXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PA10 USART1_RX
+    [IO_UART_TXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                      IO_OUT_LOW }, // PA9 USART1_TX
+    [IO_ANALOG_MUX_1_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB4 Output etc
+    [IO_ANALOG_MUX_1_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB5
+    [IO_ANALOG_MUX_1_S2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB3
+    [IO_ANALOG_MUX_1_S3] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PA15
+    [IO_ANALOG_MUX_2_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PB0
+    [IO_ANALOG_MUX_2_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PC1
+    [IO_ANALOG_MUX_2_S2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PA4
+    [IO_ANALOG_MUX_2_S3] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
+                             IO_OUT_LOW }, // PA8
     [IO_ANALOG_MUX_ENABLE_1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                                  IO_OUT_LOW }, // PB12
     [IO_ANALOG_MUX_ENABLE_2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                                  IO_OUT_LOW }, // PB13
-    // [IO_ANALOG_MUX_COM_1] = { IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
-    //                           IO_OUT_LOW }, // PA0
-    // Substituted inline pin configuration with ADC config
     [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0
-    [IO_ANALOG_MUX_COM_2] = { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
-                              IO_OUT_LOW }, // PA1
+    [IO_ANALOG_MUX_COM_2] = ADC_CONFIG, // PA1
     [IO_PWM_DISTAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
                                               IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA6 TIM?
     [IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
@@ -126,10 +131,6 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                                              IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PB10
 
     // Board-specific
-    [IO_PA2] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
-                 IO_OUT_LOW }, // USART2_TX
-    [IO_PA3] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
-                 IO_OUT_LOW }, // USART2_RX
     [IO_PC13] = { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
                   IO_OUT_LOW }, // User Button
     [IO_PC14] = { true, IO_SELECT_ANALOG, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
@@ -154,7 +155,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
 // TODO: Assign pins here that will be reserved as ADC pins
 // Temporarily assigned one
 
-static const io_e io_adc_pins_arr[] = { IO_ANALOG_MUX_COM_1 };
+static const io_e io_adc_pins_arr[] = { IO_ANALOG_MUX_COM_1, IO_ANALOG_MUX_COM_2 };
 
 // Default config for all *other* pins
 const struct io_config io_default_unused = { false, IO_SELECT_ANALOG, IO_ALT_FUNCTION_0,

@@ -48,14 +48,14 @@ typedef struct
 } imu_driver_t;
 
 void imu_driver_init(imu_driver_t *imu_driver, uint8_t slave_address);
-void imu_driver_select_channel(imu_driver_t *imu_driver, imu_channel_t channel);
+void imu_driver_select_channel(const imu_driver_t *imu_driver, imu_channel_t channel);
 
 // Raw Data
-void imu_driver_read_all(imu_driver_t *imu_driver, imu_channel_t channel, int16_t *ax, int16_t *ay,
+void imu_driver_read_all(const imu_driver_t *imu_driver, imu_channel_t channel, int16_t *ax, int16_t *ay,
                          int16_t *az, int16_t *gx, int16_t *gy, int16_t *gz);
 
 // Angle Calculation
-void calibrate_imus(imu_driver_t *imu_driver);
+void calibrate_imus(const imu_driver_t *imu_driver);
 void update_quaternion(imu_driver_t *imu_driver, imu_channel_t channel);
 void convert_quaternion_to_euler(imu_driver_t *imu_driver, imu_channel_t channel);
 void update_joint_angles(imu_driver_t *imu_driver, float *imu_angles);
