@@ -5,7 +5,7 @@
 #include <stm32f4xx.h> // for __NOP()
 
 #ifdef ROBOTIC_ARM
-#define PCLK1 45000000U // (Correct for 168MHz core, APB1/4)
+#define PCLK1 42000000U // (Correct for 168MHz core, APB1/4)
 #define PCLK2 84000000U // (Correct for 168MHz core, APB2/2)
 #define SYSTEM_CORE_CLOCK 168000000UL
 #define BAUD 9600U
