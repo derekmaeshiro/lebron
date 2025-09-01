@@ -83,8 +83,8 @@ typedef enum {
 #elif defined(ROBOTIC_ARM) // STM32F446RE
     IO_I2C_SCL = IO_PB8, // Servo drivers
     IO_I2C_SDA = IO_PB9, // Servo drivers
-    IO_UART_RXD = IO_PA10, // UART
-    IO_UART_TXD = IO_PA9, // UART
+    IO_UART1_RXD = IO_PA10, // UART
+    IO_UART1_TXD = IO_PA9, // UART
     IO_TEST_LED = IO_PA5, // Testing Blinky / Debugging
     IO_ANALOG_MUX_S0 = IO_PB4, // Analog Mux Bit Configuration
     IO_ANALOG_MUX_S1 = IO_PB5, // Analog Mux Bit Configuration

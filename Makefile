@@ -77,6 +77,8 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/uart.c \
 		  src/drivers/i2c.c \
 		  src/drivers/servo_driver.c \
+		  src/drivers/imu_driver.c \
+		  src/drivers/MadgwickAHRS.c \
 		  src/common/ring_buffer.c \
 		  src/common/trace.c \
 		  src/common/assert_handler.c \
@@ -124,9 +126,9 @@ STARTUP = $(INCLUDE)/startup.c
 # Warning flags
 WFLAGS = -Wall -Wextra -Werror -Wshadow
 # Compiler flags
-CFLAGS = -mcpu=$(MCPU) -mthumb -D$(STM_VERSION) $(WFLAGS) $(addprefix -I, $(INCLUDE_DIRS)) $(DEFINES) -Og -g 
+CFLAGS = -mcpu=$(MCPU) -mthumb -D$(STM_VERSION) $(WFLAGS) $(addprefix -I, $(INCLUDE_DIRS)) $(DEFINES) -Og -g -mfloat-abi=softfp -mfpu=fpv4-sp-d16
 # Linker flags
-LDFLAGS = -mcpu=$(MCPU) -mthumb -D$(STM_VERSION) $(DEFINES) $(addprefix -L, $(LIB_DIRS)) -T$(LINKER_SCRIPT) $(addprefix -I, $(INCLUDE_DIRS))
+LDFLAGS = -mcpu=$(MCPU) -mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16 --specs=nosys.specs -D$(STM_VERSION) $(DEFINES) $(addprefix -L, $(LIB_DIRS)) -T$(LINKER_SCRIPT) $(addprefix -I, $(INCLUDE_DIRS))
 # Start up flags
 SUPFLAGS = $(STARTUP) -Wl,--gc-sections
 
@@ -135,7 +137,7 @@ SUPFLAGS = $(STARTUP) -Wl,--gc-sections
 $(TARGET): $(OBJECTS)
 	@echo "OBJECTS: $(OBJECTS)"
 	@mkdir -p $(dir $@)
-	$(CC) $(LDFLAGS) $(SUPFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $(SUPFLAGS) $^ -lm -o $@
 
 ## Compiling
 $(OBJ_DIR)/%.o: %.c

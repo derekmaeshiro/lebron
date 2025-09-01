@@ -39,8 +39,8 @@ void adc_init(void)
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
     // For single conversion mode
-    ADC1 -> CR1 = (adc_pin_cnt > 1) ? ADC_CR1_SCAN : 0;
-    ADC1 -> CR2 = 0;
+    ADC1->CR1 = (adc_pin_cnt > 1) ? ADC_CR1_SCAN : 0;
+    ADC1->CR2 = 0;
 
     // // For continuous conversion mode
     // ADC1-> CR2 = ADC_CR2_CONT;
@@ -62,30 +62,32 @@ void adc_init(void)
 
 void adc_get_channel_values(adc_channel_values_t values)
 {
-    __disable_irq();  // Disable global interrupts
+    __disable_irq(); // Disable global interrupts
 
-    if (!initialized) return;
+    if (!initialized)
+        return;
 
     for (uint8_t i = 0; i < adc_pin_cnt; i++) {
         uint8_t channel_idx = io_to_adc_idx(adc_pins[i]);
 
         // Select this channel in SQR3 (1 conversion in the sequence)
-        ADC1 -> SQR3 = channel_idx;
+        ADC1->SQR3 = channel_idx;
 
         // Enable ADC
-        ADC1 -> CR2 |= ADC_CR2_ADON;
+        ADC1->CR2 |= ADC_CR2_ADON;
 
         // Start conversion
-        ADC1 -> CR2 |= ADC_CR2_SWSTART;
+        ADC1->CR2 |= ADC_CR2_SWSTART;
 
         // Wait for end of conversion
-        while (!(ADC1->SR & ADC_SR_EOC));
+        while (!(ADC1->SR & ADC_SR_EOC))
+            ;
 
         // Read the result
         values[channel_idx] = ADC1->DR;
     }
 
-    __enable_irq();  // Re-enable interrupts
+    __enable_irq(); // Re-enable interrupts
 }
 
 /*

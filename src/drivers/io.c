@@ -94,10 +94,10 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                      IO_OUT_HIGH }, // PB8 I2C1_SCL
     [IO_I2C_SDA] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_4, IO_PULL_UP_ENABLED,
                      IO_OUT_HIGH }, // PB9 I2C1_SDA
-    [IO_UART_RXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
-                      IO_OUT_LOW }, // PA10 USART1_RX
-    [IO_UART_TXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
-                      IO_OUT_LOW }, // PA9 USART1_TX
+    [IO_UART1_RXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                       IO_OUT_LOW }, // PA10 USART1_RX
+    [IO_UART1_TXD] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_7, IO_RESISTOR_DISABLED,
+                       IO_OUT_LOW }, // PA9 USART1_TX
     [IO_ANALOG_MUX_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                            IO_OUT_LOW }, // PB4 Output etc
     [IO_ANALOG_MUX_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,

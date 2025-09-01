@@ -42,15 +42,18 @@ void i2c_init(void)
     I2C1->CR1 = I2C_CR1_SWRST;
     I2C1->CR1 = 0;
 
-    I2C1->CR2 = PCLK1 / 1e6; // APB1 in MHz
+    I2C1->CR2 = (PCLK1 / 1000000U); // APB1 in MHz
     I2C1->CCR = PCLK1 / (2 * 100000); // 100 kHz standard mode
-    I2C1->TRISE = (PCLK1 / 1e6) + 1;
+    I2C1->TRISE = (PCLK1 / 1000000U) + 1;
 
     I2C1->CR1 = I2C_CR1_PE;
     I2C1->CR2 |= I2C_CR2_ITEVTEN | I2C_CR2_ITBUFEN | I2C_CR2_ITERREN;
 
     NVIC_EnableIRQ(I2C1_EV_IRQn);
     NVIC_EnableIRQ(I2C1_ER_IRQn);
+
+    // Insane Bug Fix
+    GPIOB->OTYPER |= GPIO_OTYPER_OT8 | GPIO_OTYPER_OT9;
 }
 
 bool i2c_is_busy(void)
@@ -111,7 +114,7 @@ void i2c1_ev_handler(void)
     switch (ctx.state) {
 
     case I2C_WRITE_ADDR:
-        if (sr1 & I2C_SR1_SB) {
+        if (I2C1->SR1 & I2C_SR1_SB) {
             I2C1->DR = (ctx.slave_addr << 1); // write mode
             ctx.state = I2C_WRITE_DATA;
         }
@@ -119,7 +122,7 @@ void i2c1_ev_handler(void)
         break;
 
     case I2C_WRITE_DATA:
-        if (sr1 & I2C_SR1_ADDR) {
+        if (I2C1->SR1 & I2C_SR1_ADDR) {
             (void)I2C1->SR2;
             if (ctx.wlen == 0) {
                 I2C1->CR1 |= I2C_CR1_STOP;
@@ -204,4 +207,6 @@ void i2c1_er_handler(void)
     if (ctx.cb)
         ctx.cb(-1);
     ctx.state = I2C_IDLE;
+
+    // ASSERT(0);
 }

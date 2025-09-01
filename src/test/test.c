@@ -8,6 +8,7 @@
 #include "../drivers/adc.h"
 #include "../drivers/i2c.h"
 #include "../drivers/servo_driver.h"
+#include "../drivers/imu_driver.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 #include "../common/trace.h"
@@ -184,6 +185,14 @@ static void test_uart_put_char_polling(void)
     test_setup();
     mcu_init();
     uart_init();
+
+    while (1) {
+        uart_putchar_polling('a');
+        uart_putchar_polling('p');
+        uart_putchar_polling('p');
+        uart_putchar_polling('l');
+        uart_putchar_polling('e');
+    }
 
     uart_putchar_polling('a');
     uart_putchar_polling('p');
@@ -592,6 +601,239 @@ void test_polling_check(void)
     while (!(USART1->SR & USART_SR_TXE));
     USART1->DR = 'U';
     for (volatile int i = 0; i < 200000; ++i) {}
+}
+}
+
+#define MPU_ADDR 0x68 // address without shifting
+
+void test_mpu6050(void)
+{
+    test_setup();
+    trace_init();
+    TRACE("Starting minimal MPU6050 I2C test...\n");
+    i2c_init(); 
+
+    // Wake up device (register 0x6B ← 0x00)
+    uint8_t wake_cmd[] = {0x6B, 0x00}; // reg + value
+    bool ok = i2c_write(MPU_ADDR, wake_cmd, 2, NULL);
+    TRACE("i2c_write returned: %d\n", ok);
+    while (i2c_is_busy());
+
+    TRACE("Minimal test done.\n");
+}
+
+void test_mpu6050_reg(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+   
+    uint8_t reg_only[] = {0x6B}; // Just register address
+    i2c_write(MPU_ADDR, reg_only, 1, NULL);
+    while (i2c_is_busy());
+}
+
+#define MUX_ADDR 0x70
+
+void test_mux_simple(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    uint8_t select = 0x01; // for example, channel 1
+    i2c_write(0x70, &select, 1, NULL);
+    while (i2c_is_busy());
+}
+
+void test_mux_write_channel0(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+        
+    uint8_t select = 0x01;
+    TRACE("Selecting MUX channel 0");
+    i2c_write(MUX_ADDR, &select, 1, NULL);
+    while (i2c_is_busy());
+    TRACE("MUX channel 0 selected");
+}
+
+#define PCA9548A_ADDR   0x70       // Your I2C mux address (default is often 0x70)
+#define MPU6050_ADDR    0x68  // Your MPU6050 address (default is 0x68)
+#define MPU6050_WHOAMI  0x75           // WHOAMI register address
+
+void test_mux_channel0_read(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    uint8_t mux_control = 0x01;    // Channel 0 = bit 0 = 1
+    uint8_t whoami_reg = MPU6050_WHOAMI;
+    uint8_t whoami_val = 0;
+
+    // 1. Select channel 0 on PCA9548A:
+    i2c_write(0x70, &mux_control, 1, NULL);
+    while (i2c_is_busy());
+
+    // 2. Point to WHOAMI register:
+    i2c_write(0x68, &whoami_reg, 1, NULL);
+    while (i2c_is_busy());
+
+    // 3. Read WHOAMI register:
+    i2c_read(0x68, &whoami_val, 1, NULL);
+    while (i2c_is_busy());
+
+    // 4. Print result:
+    TRACE("MPU6050 WHOAMI (channel 0): 0x%02X", whoami_val);
+    // Should print 0x68 if MPU6050 is responding
+}
+
+void test_imu_driver_init(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    imu_driver_t imu_driver;
+    imu_driver_init(&imu_driver, I2C_MUX);
+
+    imu_driver_select_channel(&imu_driver, 0);
+
+    uint8_t whoami_reg = 0x75;
+    uint8_t whoami_val = 0;
+    
+    i2c_write(MPU_6050_ADDR, &whoami_reg, 1, NULL);
+    while (i2c_is_busy());    
+    i2c_read(MPU_6050_ADDR, &whoami_val, 1, NULL);
+    while (i2c_is_busy());    
+    TRACE("WHOAMI: 0x%02X", whoami_val);   // Should be 0x68
+
+    int16_t ax, ay, az, gx, gy, gz;
+
+    while (1) {
+        imu_driver_read_all(&imu_driver, 0, &ax, &ay, &az, &gx, &gy, &gz);
+        TRACE("ax=%d, ay=%d, az=%d, gx=%d, gy=%d, gz=%d\n", ax, ay, az, gx, gy, gz);
+        BUSY_WAIT_ms(500);
+    }
+
+    // uint16_t imu_angles[3];
+    // update_joint_angles(&imu_driver, imu_angles);
+    // TRACE("imu_angles[0] is %d and imu_angles[1] is %d\n and imu_angles[2] is %d\n", imu_angles[0], imu_angles[1], imu_angles[2]);
+
+}
+
+void test_accel_data(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    imu_driver_t imu_driver;
+    imu_driver_init(&imu_driver, I2C_MUX);
+
+    int16_t ax, ay, az, gx, gy, gz;
+
+    while (1) {
+        imu_driver_read_all(&imu_driver, 0, &ax, &ay, &az, &gx, &gy, &gz);
+        TRACE("ax=%d ay=%d az=%d gx=%d gy=%d gz=%d\n", ax, ay, az, gx, gy, gz);
+        BUSY_WAIT_ms(500);
+    }
+}
+
+void test_joint_angles(void)
+{
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    imu_driver_t imu_driver;
+    imu_driver_init(&imu_driver, I2C_MUX);
+    servo_driver_t driver = {0};
+    servo_driver_init(&driver, 0x40);
+
+    float imu_angles[3];
+    calibrate_imus(&imu_driver);
+
+    while (1) {
+        update_joint_angles(&imu_driver, imu_angles);
+        servo_driver_set_servo_angle(&driver, 0, (uint8_t)(imu_angles[0])*10);
+        TRACE("imu_angles[0] is %d and imu_angles[1] is %d\n and imu_angles[2] is %d\n", (uint8_t)(imu_angles[0]), (uint8_t)(imu_angles[1]), (uint8_t)(imu_angles[2]));
+    }
+}
+
+#define PCA9548A_ADDR  0x70   // For example, check your jumpers/schematic!
+#define CTRL_BYTE      0x01   // The control byte you want to write
+
+void test_mux_scratch(void)
+{
+
+    // Enable clocks
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;         // Enable GPIOB clock
+    RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;          // Enable I2C1 clock
+
+    // Setup PB8/PB9 for AF4 Open Drain
+    GPIOB->MODER &= ~(GPIO_MODER_MODER8 | GPIO_MODER_MODER9);
+    GPIOB->MODER |= (GPIO_MODER_MODER8_1 | GPIO_MODER_MODER9_1); // AF mode
+
+    GPIOB->OTYPER |= GPIO_OTYPER_OT8 | GPIO_OTYPER_OT9; // open drain
+
+    GPIOB->AFR[1] |= (4 << ((8-8)*4)) | (4 << ((9-8)*4)); // AF4
+
+    GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPDR8 | GPIO_PUPDR_PUPDR9); // no pullup
+
+    // I2C peripheral config
+    I2C1->CR1 = I2C_CR1_SWRST;      // Reset
+    I2C1->CR1 = 0;                  // End reset
+
+    I2C1->CR2   = 42;               // PCLK1 = 42MHz
+    I2C1->CCR   = 210;              // (42MHz)/(2*100kHz)=210 for 100kHz
+    I2C1->TRISE = 43;               // 42 + 1
+
+    I2C1->CR1 |= I2C_CR1_PE;        // Enable peripheral
+
+    // 1. Generate Start
+I2C1->CR1 |= I2C_CR1_START;
+
+// 2. Wait for Start bit sent (SB in SR1)
+while (!(I2C1->SR1 & I2C_SR1_SB));
+
+// 3. Send slave address (write: last bit 0)
+I2C1->DR = (PCA9548A_ADDR << 1); // 0x70 << 1 == 0xE0
+
+// 4. Wait for address acknowledged (ADDR in SR1 *or* NACK, AF in SR1)
+//   - If slave ACKs, ADDR will be set.
+//   - If NACK, AF will be set.
+while (
+    !(I2C1->SR1 & I2C_SR1_ADDR) &&  // Address acknowledged
+    !(I2C1->SR1 & I2C_SR1_AF)       // NACK error
+);
+
+// 5. Did we get an ACK or NACK?
+if (I2C1->SR1 & I2C_SR1_AF)
+{
+    // NACK! Slave didn't acknowledge.
+    // Clean up: reset the AF bit by writing 0 and maybe send STOP.
+    I2C1->SR1 &= ~I2C_SR1_AF;
+    I2C1->CR1 |= I2C_CR1_STOP;
+    // Do some error indication here (blink LED, etc)
+}
+else
+{
+    // ACK: Address phase was accepted.
+    // Need to clear ADDR bit: read SR1/SR2
+    (void)I2C1->SR2;
+
+    // 6. Send your data byte (CTRL_BYTE)
+    I2C1->DR = CTRL_BYTE;
+
+    // 7. Wait for data register empty (TXE in SR1)
+    while (!(I2C1->SR1 & I2C_SR1_TXE));
+
+    // 8. Generate STOP condition
+    I2C1->CR1 |= I2C_CR1_STOP;
+    // Done!
 }
 }
 

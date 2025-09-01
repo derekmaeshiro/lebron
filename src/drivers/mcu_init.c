@@ -82,6 +82,11 @@ void mcu_init(void)
     io_init();
     clock_init();
 
+    // ---- ENABLE FPU (add this here!) ----
+    // Enable CP10 and CP11 full access (Cortex-M4F FPU)
+    SCB->CPACR |= (0xF << 20);
+    // -------------------------------------
+
     // Globally enable interrupts
     __enable_irq();
 }
