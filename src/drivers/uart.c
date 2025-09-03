@@ -10,9 +10,13 @@
 
 int count = 0;
 
-#define UART_BUFFER_SIZE (17)
-static uint8_t buffer[UART_BUFFER_SIZE];
-static struct ring_buffer tx_buffer = { .buffer = buffer, .size = sizeof(buffer) };
+#define UART_TX_BUFFER_SIZE (17)
+#define UART_RX_BUFFER_SIZE (64)
+uint8_t tx_buffer_data[UART_TX_BUFFER_SIZE];
+uint8_t rx_buffer_data[UART_RX_BUFFER_SIZE];
+
+struct ring_buffer tx_buffer = { .buffer = tx_buffer_data, .size = sizeof(tx_buffer_data) };
+struct ring_buffer rx_buffer = { .buffer = rx_buffer_data, .size = sizeof(rx_buffer_data) };
 
 static inline void uart_tx_clear_interrupt(void)
 {
@@ -22,6 +26,7 @@ static inline void uart_tx_clear_interrupt(void)
 static inline void uart_tx_enable_interrupt(void)
 {
     USART1->CR1 |= USART_CR1_TXEIE;
+    USART1->CR1 |= USART_CR1_RXNEIE;
 }
 
 static inline void uart_tx_disable_interrupt(void)
@@ -36,8 +41,19 @@ static void uart_tx_start(void)
     }
 }
 
+static void uart_rx_start(void)
+{
+    if (USART1->SR & USART_SR_RXNE) {
+        uint8_t data = USART1->DR;
+        ring_buffer_put(&rx_buffer, data);
+    }
+}
+
 void usart1_handler(void)
 {
+    /* RX Implementation */
+    uart_rx_start();
+
     if (ring_buffer_empty(&tx_buffer)) {
         uart_tx_disable_interrupt(); // Instead of while(1)
         return;
