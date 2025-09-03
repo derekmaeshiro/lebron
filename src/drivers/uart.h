@@ -5,6 +5,9 @@
 #ifndef UART_H
 #define UART_H
 
+extern struct ring_buffer rx_buffer;
+extern struct ring_buffer tx_buffer;
+
 void uart_init(void);
 void uart_putchar_polling(char c);
 void uart_print_polling(const char *string);

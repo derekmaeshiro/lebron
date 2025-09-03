@@ -5,7 +5,7 @@
 #ifndef POTENTIOMETER_BOARD_H
 #define POTENTIOMETER_BOARD_H
 
-#if defined ROBOTIC_ARM
+// #if defined ROBOTIC_ARM
 struct potentiometer_config
 {
     analog_mux_e mux;
@@ -21,6 +21,6 @@ typedef enum {
 void potentiometer_init(void);
 uint16_t potentiometer_read(potentiometer_e potentiometer);
 void read_all_potentiometers(uint16_t *angles);
-#endif
+// #endif
 
 #endif

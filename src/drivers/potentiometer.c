@@ -6,7 +6,7 @@
 #include "../common/defines.h"
 #include "../common/trace.h"
 
-#if defined ROBOTIC_ARM
+// #if defined ROBOTIC_ARM
 
 const struct potentiometer_config potentiometer_configs[] = {
     [POTENTIOMETER_1] = {
@@ -29,7 +29,7 @@ uint16_t convert_adc_value_to_angle(uint16_t adc_value)
 }
 
 static bool initialized = false;
-void potentiometer_init()
+void potentiometer_init(void)
 {
     ASSERT(!initialized);
     initialized = true;
@@ -57,4 +57,4 @@ void read_all_potentiometers(uint16_t *angles)
         angles[i] = potentiometer_read((potentiometer_e)i);
     }
 }
-#endif
+// #endif
