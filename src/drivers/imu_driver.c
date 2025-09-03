@@ -51,8 +51,8 @@ void imu_driver_select_channel(const imu_driver_t *imu_driver, imu_channel_t cha
 }
 
 // Get data from IMU
-void imu_driver_read_all(const imu_driver_t *imu_driver, imu_channel_t channel, int16_t *ax, int16_t *ay,
-                         int16_t *az, int16_t *gx, int16_t *gy, int16_t *gz)
+void imu_driver_read_all(const imu_driver_t *imu_driver, imu_channel_t channel, int16_t *ax,
+                         int16_t *ay, int16_t *az, int16_t *gx, int16_t *gy, int16_t *gz)
 {
     imu_driver_select_channel(imu_driver, channel);
 
