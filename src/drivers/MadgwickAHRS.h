@@ -22,9 +22,9 @@ extern volatile float beta; // algorithm gain
 // Function declarations
 
 void MadgwickAHRSupdate(float gx, float gy, float gz, float ax, float ay, float az, float mx,
-                        float my, float mz, float *q0, float *q1, float *q2, float *q3);
+                        float my, float mz, float *q0, float *q1, float *q2, float *q3, float dt);
 void MadgwickAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float az, float *q0,
-                           float *q1, float *q2, float *q3);
+                           float *q1, float *q2, float *q3, float dt);
 
 #endif
 //=====================================================================================================

@@ -8,10 +8,8 @@
 #include <stdio.h>
 #include <stm32f4xx.h>
 
-int count = 0;
-
 #define UART_TX_BUFFER_SIZE (17)
-#define UART_RX_BUFFER_SIZE (64)
+#define UART_RX_BUFFER_SIZE (NUM_OF_POTENTIOMETERS)
 uint8_t tx_buffer_data[UART_TX_BUFFER_SIZE];
 uint8_t rx_buffer_data[UART_RX_BUFFER_SIZE];
 
@@ -151,8 +149,6 @@ void uart_print_polling(const char *string)
 
 void _putchar(char c)
 {
-    count++;
-
     while (ring_buffer_full(&tx_buffer)) { }
 
     uart_tx_disable_interrupt();
@@ -179,7 +175,6 @@ void uart_print_interrupt(const char *string)
     }
 }
 
-#if defined ROBOTIC_ARM
 static uint8_t utoa_uint(char *buf, uint32_t value)
 {
     char tmp[10];
@@ -260,6 +255,7 @@ void deserialize_potentiometer_reading(const char *data, struct potentiometer_re
 void uart_send_potentiometer_readings(const struct potentiometer_reading *readings,
                                       uint8_t reading_count)
 {
+    //(void)readings;
     uint8_t MAX_READING_BUFFER_SIZE = 64;
     for (uint8_t i = 0; i < reading_count; i++) {
         char readings_buffer[MAX_READING_BUFFER_SIZE];
@@ -267,7 +263,6 @@ void uart_send_potentiometer_readings(const struct potentiometer_reading *readin
         uart_print_interrupt(readings_buffer);
     }
 }
-#endif
 
 void uart_init_assert(void)
 {

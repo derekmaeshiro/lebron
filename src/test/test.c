@@ -4,6 +4,7 @@
 #include "../drivers/io.h"
 #include "../drivers/pwm.h"
 #include "../drivers/potentiometer.h"
+#include "../drivers/potentiometer_workflow.h"
 #include "../drivers/mcu_init.h"
 #include "../drivers/uart.h"
 #include "../drivers/adc.h"
@@ -14,6 +15,8 @@
 #include "../common/defines.h"
 #include "../common/trace.h"
 #include "../common/ring_buffer.h"
+
+#include <math.h>
 
 // For PWM test
 #define PWM_GPIO_PORT GPIOA
@@ -599,7 +602,7 @@ void test_potentiometer(void)
     TRACE("Testing potentiometer...");
     while (1) {
         uint8_t current_potentiometer = 0;
-        potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
+        potentiometer_e potentiometers[] = { THUMB_DISTAL, THUMB_MIDDLE };
         uint16_t angle_value = potentiometer_read(potentiometers[current_potentiometer]);
         TRACE("POTENTIOMETER %u READING: %u", current_potentiometer+1, angle_value);
         // for (uint8_t i = 0; i < ARRAY_SIZE(potentiometers); i++) {
@@ -697,16 +700,24 @@ void test_mpu6050(void)
 {
     test_setup();
     trace_init();
-    TRACE("Starting minimal MPU6050 I2C test...\n");
-    i2c_init(); 
-
-    // Wake up device (register 0x6B ← 0x00)
-    uint8_t wake_cmd[] = {0x6B, 0x00}; // reg + value
-    bool ok = i2c_write(MPU_ADDR, wake_cmd, 2, NULL);
-    TRACE("i2c_write returned: %d\n", ok);
-    while (i2c_is_busy());
-
-    TRACE("Minimal test done.\n");
+    adc_init();
+    potentiometer_init();
+    // const struct potentiometer_reading dummy_readings[] = {
+    //     { .potentiometer_board = POTENTIOMETER_1, .angle = 45 },
+    //     { .potentiometer_board = POTENTIOMETER_2, .angle = 90 },
+    // };
+    uint16_t angles[2];
+    read_all_potentiometers(angles);
+    struct potentiometer_reading potentiometer_readings[2];
+    for(int i=0; i<2; i++){
+        potentiometer_readings[i].potentiometer_board = (potentiometer_e)i;
+        potentiometer_readings[i].angle = angles[i];
+        TRACE("Potentiometer %u angle: %u", i, angles[i]);
+    }
+    while(1){
+        uart_send_potentiometer_readings(potentiometer_readings, 2);
+        BUSY_WAIT_ms(2000);
+    }
 }
 
 void test_mpu6050_reg(void)
@@ -797,11 +808,21 @@ void test_imu_driver_init(void)
     while (i2c_is_busy());    
     TRACE("WHOAMI: 0x%02X", whoami_val);   // Should be 0x68
 
-    int16_t ax, ay, az, gx, gy, gz;
+    int16_t ax0, ay0, az0, ax1, ay1, az1, gx, gy, gz;
 
     while (1) {
-        imu_driver_read_all(&imu_driver, 0, &ax, &ay, &az, &gx, &gy, &gz);
-        TRACE("ax=%d, ay=%d, az=%d, gx=%d, gy=%d, gz=%d\n", ax, ay, az, gx, gy, gz);
+        imu_driver_read_all(&imu_driver, 0, &ax0, &ay0, &az0, &gx, &gy, &gz);
+        TRACE("CHANNEL %d: ax=%d, ay=%d, az=%d, gx=%d, gy=%d, gz=%d\n", 0, ax0, ay0, az0, gx, gy, gz);
+        imu_driver_read_all(&imu_driver, 1, &ax1, &ay1, &az1, &gx, &gy, &gz);
+        TRACE("CHANNEL %d: ax=%d, ay=%d, az=%d, gx=%d, gy=%d, gz=%d\n", 1, ax1, ay1, az1, gx, gy, gz);
+
+        // float g0 = sqrt(ax0*ax0 + ay0*ay0 + az0*az0);
+        // float g1 = sqrt(ax1*ax1 + ay1*ay1 + az1*az1);
+
+        // float angle0 = acos(az0 / g0) * (180.0f / 3.14159f);
+        // float angle1 = acos(az1 / g1) * (180.0f / 3.14159f);
+
+        // TRACE("angle0=%d angle1=%d joint_angle=%d\n", (uint16_t) angle1, (uint16_t) angle0);
         BUSY_WAIT_ms(500);
     }
 
@@ -823,7 +844,7 @@ void test_accel_data(void)
     int16_t ax, ay, az, gx, gy, gz;
 
     while (1) {
-        imu_driver_read_all(&imu_driver, 0, &ax, &ay, &az, &gx, &gy, &gz);
+        imu_driver_read_all(&imu_driver, 4, &ax, &ay, &az, &gx, &gy, &gz);
         TRACE("ax=%d ay=%d az=%d gx=%d gy=%d gz=%d\n", ax, ay, az, gx, gy, gz);
         BUSY_WAIT_ms(500);
     }
@@ -835,18 +856,78 @@ void test_joint_angles(void)
     trace_init();
     i2c_init();
 
+    TRACE("Going to start initializing...\n");
+
     imu_driver_t imu_driver;
     imu_driver_init(&imu_driver, I2C_MUX);
+    calibrate_gyro_biases(&imu_driver);
+    
     servo_driver_t driver = {0};
     servo_driver_init(&driver, 0x40);
 
-    float imu_angles[3];
-    calibrate_imus(&imu_driver);
+    TRACE("Done initializing...\n");
+
+    float imu_angles[NUM_OF_IMU_ANGLES];
+    
+    // Let Madgwick settle by updating all IMUs for 1 second before calibrating
+    #define SETTLE_CYCLES 100
+    #define UPDATE_PERIOD_MS 5
+    for(int i=0;i<SETTLE_CYCLES;i++){
+        for(int j=0;j<NUM_OF_IMU_SENSORS;j++){
+            update_single_imu(&imu_driver, j, UPDATE_PERIOD_MS/1000.0f);
+        }
+        BUSY_WAIT_ms(2);
+    }
+    calibrate_joint_zero_pose(&imu_driver);
+
+    TRACE("Starting...\n");
+
+    uint32_t next_tick = get_ms() + UPDATE_PERIOD_MS;
+    int current_imu = 0;
 
     while (1) {
-        update_joint_angles(&imu_driver, imu_angles);
-        servo_driver_set_servo_angle(&driver, 0, (uint8_t)(imu_angles[0])*10);
-        TRACE("imu_angles[0] is %d and imu_angles[1] is %d\n and imu_angles[2] is %d\n", (uint8_t)(imu_angles[0]), (uint8_t)(imu_angles[1]), (uint8_t)(imu_angles[2]));
+        uint32_t now = get_ms();
+        if (now < next_tick) continue;
+        next_tick += UPDATE_PERIOD_MS;
+
+        float dt = UPDATE_PERIOD_MS / 1000.0f; // dt is always 10ms or whatever period
+
+        // Update just ONE IMU per tick
+        update_single_imu(&imu_driver, current_imu, dt);
+        current_imu++;
+
+        if (current_imu >= NUM_OF_IMU_SENSORS) {
+            current_imu = 0;
+            // After updating ALL IMUs, now update the joint angles
+            update_joint_angles(&imu_driver, imu_angles);
+
+            // Optional: Actuate servo, log, etc
+            float joint_angle = imu_angles[0]; // could be negative!
+
+            // Clamp to range [-90, +90] for safety
+            if(joint_angle < -90) joint_angle = -90;
+            if(joint_angle >  90) joint_angle =  90;
+
+            float servo_angle = joint_angle + 90; // map [-90,90] -> [0,180]
+            servo_driver_set_servo_angle(&driver, 0, (uint8_t)servo_angle);
+        }
+    }
+}
+
+void test_gpio_blink(void)
+{
+    test_setup();
+
+    // GPIO Toggle test, blink every 1000 get_ms
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
+    GPIOC->MODER |= (0x1 << (13 * 2));
+
+    uint32_t last = get_ms();
+    while (1) {
+        if (get_ms() - last >= 1000) {
+            last += 1000;
+            GPIOC->ODR ^= (1 << 13);
+        }
     }
 }
 
@@ -982,7 +1063,7 @@ void test_potentiometer_to_servo(void){
         adc_init();
         potentiometer_init();
         uint8_t current_potentiometer = 0;
-        potentiometer_e potentiometers[] = { POTENTIOMETER_1, POTENTIOMETER_2 };
+        potentiometer_e potentiometers[] = { THUMB_DISTAL, THUMB_MIDDLE };
 
         servo_driver_t driver = { 0 };
         servo_channel_t channel = 0;
@@ -1008,6 +1089,48 @@ void test_uart_rx_buffer(void)
         while (!ring_buffer_empty(&rx_buffer)) {
             uint8_t c = ring_buffer_get(&rx_buffer);
             _putchar(c);
+        }
+    }
+}
+
+SUPPRESS_UNUSED
+void test_potentiometer_workflow(void)
+{
+    test_setup();
+    trace_init();
+
+    #if defined ARM_SLEEVE
+
+    potentiometer_workflow_init();
+    potentiometer_workflow_enable();
+    //TRACE("Testing potentiometer_workflow for ARM_SLEEVE...");
+    while(1){
+        potentiometer_workflow_run();
+        BUSY_WAIT_ms(1000);
+    }
+    #endif
+
+    #if defined ROBOTIC_ARM
+
+    potentiometer_workflow_init();
+    potentiometer_workflow_enable();
+    TRACE("Testing potentiometer_workflow for ROBOTIC_ARM...");
+    while(1){
+        potentiometer_workflow_run();
+    }
+
+    #endif
+}
+
+void test_get_ms(void)
+{
+    test_setup();
+
+    while (1) {
+        static uint32_t last = 0;
+        if (get_ms() != last) {
+            last = get_ms();
+            GPIOC->ODR ^= (1 << 13); // Or whichever pin you have connected to your scope
         }
     }
 }

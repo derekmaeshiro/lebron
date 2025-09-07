@@ -14,15 +14,14 @@ void uart_print_polling(const char *string);
 void _putchar(char c);
 void uart_print_interrupt(const char *string);
 
-#if defined ROBOTIC_ARM
 struct potentiometer_reading
 {
     potentiometer_e potentiometer_board;
     uint16_t angle;
 };
+
 void uart_send_potentiometer_readings(const struct potentiometer_reading *readings, uint8_t count);
 void deserialize_potentiometer_reading(const char *data, struct potentiometer_reading *reading);
-#endif
 
 // These functions should ONLY be called by assert_handler
 void uart_init_assert(void);

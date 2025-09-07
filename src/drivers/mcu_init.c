@@ -1,6 +1,35 @@
 #include "mcu_init.h"
+#include "../common/defines.h"
 #include "io.h"
 #include <stm32f4xx.h>
+
+volatile uint32_t g_ms_ticks = 0;
+
+void systick_handler(void)
+{
+    g_ms_ticks++;
+}
+
+uint32_t get_ms(void)
+{
+    return g_ms_ticks;
+}
+
+void systick_init(void)
+{
+    // (1) Set reload register for 1ms ticks:
+    SysTick->LOAD = (SYSTEM_CORE_CLOCK / 1000) - 1; // 1ms tick
+
+    // (2) Set priority (optional, but recommended):
+    NVIC_SetPriority(SysTick_IRQn, 0);
+
+    // (3) Clear current value register:
+    SysTick->VAL = 0;
+
+    // (4) Set control register:
+    // Enable counter, tick interrupt, use processor clock
+    SysTick->CTRL = SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_CLKSOURCE_Msk;
+}
 
 void clock_init(void)
 {
@@ -81,6 +110,7 @@ void mcu_init(void)
     // watchdog is already off by default
     io_init();
     clock_init();
+    systick_init();
 
     // ---- ENABLE FPU (add this here!) ----
     // Enable CP10 and CP11 full access (Cortex-M4F FPU)
