@@ -109,7 +109,7 @@ void pwm_init(void)
 #endif
 
     // APB1 = 42MHz (timers = 84MHz), APB2 = 84MHz (timers = 168MHz)
-    uint32_t tim_apb1_clk = 84000000UL;  // TIM2,3,4
+    uint32_t tim_apb1_clk = 84000000UL; // TIM2,3,4
     uint32_t tim_apb2_clk = 168000000UL; // TIM8
 
     uint32_t psc_val_apb1 = (tim_apb1_clk / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
