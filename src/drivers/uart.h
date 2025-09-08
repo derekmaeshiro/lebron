@@ -16,7 +16,7 @@ void uart_print_interrupt(const char *string);
 
 struct potentiometer_reading
 {
-    potentiometer_e potentiometer_board;
+    joint_e potentiometer_board;
     uint16_t angle;
 };
 

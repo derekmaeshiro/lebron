@@ -9,7 +9,7 @@
 #include <stm32f4xx.h>
 
 #define UART_TX_BUFFER_SIZE (17)
-#define UART_RX_BUFFER_SIZE (NUM_OF_POTENTIOMETERS)
+#define UART_RX_BUFFER_SIZE (NUM_OF_JOINTS)
 uint8_t tx_buffer_data[UART_TX_BUFFER_SIZE];
 uint8_t rx_buffer_data[UART_RX_BUFFER_SIZE];
 

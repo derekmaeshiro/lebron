@@ -7,59 +7,59 @@
 #include "../common/trace.h"
 
 #if defined ROBOTIC_ARM
-const struct potentiometer_config potentiometer_configs[] = {
-    [THUMB_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 0 },
-    [THUMB_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 1 },
-    [THUMB_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 2 },
-    [INDEX_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 3 },
-    [INDEX_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 4 },
-    [INDEX_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 5 },
-    [INDEX_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 6 },
-    [MIDDLE_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 7 },
-    [MIDDLE_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 8 },
-    [MIDDLE_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 9 },
-    [MIDDLE_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 10 },
-    [RING_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 11 },
-    [RING_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 12 },
-    [RING_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 13 },
-    [RING_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 14 },
-    [PINKY_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 15 },
+const struct potentiometer_config potentiometer_configs[NUM_OF_JOINTS] = {
+    [THUMB_DISTAL] = { MUX_BOARD_1, 0 },
+    [THUMB_MIDDLE] = { MUX_BOARD_1, 1 },
+    [THUMB_METACARPAL] = { MUX_BOARD_1, 2 },
+    [INDEX_DISTAL] = { MUX_BOARD_1, 3 },
+    [INDEX_MIDDLE] = { MUX_BOARD_1, 4 },
+    [INDEX_PROXIMAL] = { MUX_BOARD_1, 5 },
+    [INDEX_METACARPAL] = { MUX_BOARD_1, 6 },
+    [MIDDLE_DISTAL] = { MUX_BOARD_1, 7 },
+    [MIDDLE_MIDDLE] = { MUX_BOARD_1, 8 },
+    [MIDDLE_PROXIMAL] = { MUX_BOARD_1, 9 },
+    [MIDDLE_METACARPAL] = { MUX_BOARD_1, 10 },
+    [RING_DISTAL] = { MUX_BOARD_1, 11 },
+    [RING_MIDDLE] = { MUX_BOARD_1, 12 },
+    [RING_PROXIMAL] = { MUX_BOARD_1, 13 },
+    [RING_METACARPAL] = { MUX_BOARD_1, 14 },
+    [PINKY_DISTAL] = { MUX_BOARD_1, 15 },
 
-    [PINKY_MIDDLE] = { .mux = MUX_BOARD_2, .mux_pin = 0 },
-    [PINKY_PROXIMAL] = { .mux = MUX_BOARD_2, .mux_pin = 1 },
-    [PINKY_METACARPAL] = { .mux = MUX_BOARD_2, .mux_pin = 2 },
-    [WRIST_WAVE] = { .mux = MUX_BOARD_2, .mux_pin = 3 },
-    [WRIST_FLICK] = { .mux = MUX_BOARD_2, .mux_pin = 4 },
-    [WRIST_NAE_NAE] = { .mux = MUX_BOARD_2, .mux_pin = 5 },
-    [ELBOW] = { .mux = MUX_BOARD_2, .mux_pin = 6 },
-    [BICEP] = { .mux = MUX_BOARD_2, .mux_pin = 7 },
-    [SHOULDER_FRONT_RAISE] = { .mux = MUX_BOARD_2, .mux_pin = 8 },
-    [SHOULDER_LAT_RAISE] = { .mux = MUX_BOARD_2, .mux_pin = 9 },
+    [PINKY_MIDDLE] = { MUX_BOARD_2, 0 },
+    [PINKY_PROXIMAL] = { MUX_BOARD_2, 1 },
+    [PINKY_METACARPAL] = { MUX_BOARD_2, 2 },
+    [WRIST_WAVE] = { MUX_BOARD_2, 3 },
+    [WRIST_FLICK] = { MUX_BOARD_2, 4 },
+    [WRIST_NAE_NAE] = { MUX_BOARD_2, 5 },
+    [ELBOW] = { MUX_BOARD_2, 6 },
+    [BICEP] = { MUX_BOARD_2, 7 },
+    [SHOULDER_FRONT_RAISE] = { MUX_BOARD_2, 8 },
+    [SHOULDER_LAT_RAISE] = { MUX_BOARD_2, 9 },
 };
 #endif
 
 #if defined ARM_SLEEVE
-const struct potentiometer_config potentiometer_configs[] = {
-    [THUMB_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 0 },
-    [THUMB_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 1 },
-    [THUMB_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 2 },
-    [INDEX_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 3 },
-    [INDEX_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 4 },
-    [INDEX_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 5 },
-    [INDEX_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 6 },
-    [MIDDLE_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 7 },
-    [MIDDLE_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 8 },
-    [MIDDLE_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 9 },
-    [MIDDLE_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 10 },
-    [RING_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 11 },
-    [RING_MIDDLE] = { .mux = MUX_BOARD_1, .mux_pin = 12 },
-    [RING_PROXIMAL] = { .mux = MUX_BOARD_1, .mux_pin = 13 },
-    [RING_METACARPAL] = { .mux = MUX_BOARD_1, .mux_pin = 14 },
-    [PINKY_DISTAL] = { .mux = MUX_BOARD_1, .mux_pin = 15 },
+const struct potentiometer_config potentiometer_configs[NUM_OF_JOINTS] = {
+    [THUMB_DISTAL] = { MUX_BOARD_1, 0 },
+    [THUMB_MIDDLE] = { MUX_BOARD_1, 1 },
+    [THUMB_METACARPAL] = { MUX_BOARD_1, 2 },
+    [INDEX_DISTAL] = { MUX_BOARD_1, 3 },
+    [INDEX_MIDDLE] = { MUX_BOARD_1, 4 },
+    [INDEX_PROXIMAL] = { MUX_BOARD_1, 5 },
+    [INDEX_METACARPAL] = { MUX_BOARD_1, 6 },
+    [MIDDLE_DISTAL] = { MUX_BOARD_1, 7 },
+    [MIDDLE_MIDDLE] = { MUX_BOARD_1, 8 },
+    [MIDDLE_PROXIMAL] = { MUX_BOARD_1, 9 },
+    [MIDDLE_METACARPAL] = { MUX_BOARD_1, 10 },
+    [RING_DISTAL] = { MUX_BOARD_1, 11 },
+    [RING_MIDDLE] = { MUX_BOARD_1, 12 },
+    [RING_PROXIMAL] = { MUX_BOARD_1, 13 },
+    [RING_METACARPAL] = { MUX_BOARD_1, 14 },
+    [PINKY_DISTAL] = { MUX_BOARD_1, 15 },
 
-    [PINKY_MIDDLE] = { .mux = MUX_BOARD_2, .mux_pin = 0 },
-    [PINKY_PROXIMAL] = { .mux = MUX_BOARD_2, .mux_pin = 1 },
-    [PINKY_METACARPAL] = { .mux = MUX_BOARD_2, .mux_pin = 2 },
+    [PINKY_MIDDLE] = { MUX_BOARD_2, 0 },
+    [PINKY_PROXIMAL] = { MUX_BOARD_2, 1 },
+    [PINKY_METACARPAL] = { MUX_BOARD_2, 2 },
 };
 #endif
 
@@ -79,37 +79,39 @@ void potentiometer_init(void)
     initialized = true;
 }
 
-uint16_t potentiometer_read(potentiometer_e potentiometer)
+uint16_t potentiometer_read(joint_e joint)
 {
-    analog_mux_e mux = potentiometer_configs[potentiometer].mux;
-    uint8_t mux_pin = potentiometer_configs[potentiometer].mux_pin;
+    analog_mux_e mux = potentiometer_configs[joint].mux;
+    uint8_t mux_pin = potentiometer_configs[joint].mux_pin;
+
+    // If hardware doesn't support the joint, struct is zero-initialized
+    if (mux == 0 && mux_pin == 0)
+        return 0;
+    
     toggle_analog_mux(mux, mux_pin);
-
-    // Flush to allow mux & ADC to settle
     adc_read_single(mux == MUX_BOARD_1 ? 0 : 1);
-
     uint16_t adc_value = adc_read_single(mux == MUX_BOARD_1 ? 0 : 1);
     return convert_adc_value_to_angle(adc_value);
 }
 
 #if defined ROBOTIC_ARM
-int16_t potentiometer_bias[NUM_OF_POTENTIOMETERS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+int16_t potentiometer_bias[NUM_OF_JOINTS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; // 26
 #endif
 
 #if defined ARM_SLEEVE
-int16_t potentiometer_bias[NUM_OF_POTENTIOMETERS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+int16_t potentiometer_bias[NUM_OF_JOINTS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                                       0, 0, 0, 0, 0, 0, 0, 0, 0 }; // 19
 #endif
 
 void calibrate_potentiometers(void)
 {
     uint16_t trials = 5;
-    for (uint8_t potentiometer = 0; potentiometer < (uint8_t)NUM_OF_POTENTIOMETERS;
+    for (uint8_t potentiometer = 0; potentiometer < (uint8_t)NUM_OF_JOINTS;
          potentiometer++) {
         uint16_t potentiometer_average = 0;
         for (uint8_t trial = 0; trial < trials; trial++) {
-            potentiometer_average += (uint16_t)potentiometer_read((potentiometer_e)potentiometer);
+            potentiometer_average += (uint16_t)potentiometer_read((joint_e)potentiometer);
             BUSY_WAIT_ms(5);
         }
         potentiometer_average /= trials;
@@ -119,8 +121,8 @@ void calibrate_potentiometers(void)
 
 void read_all_potentiometers(uint16_t *angles)
 {
-    for (uint8_t i = 0; i < (uint8_t)NUM_OF_POTENTIOMETERS; i++) {
-        angles[i] = potentiometer_read((potentiometer_e)i) - potentiometer_bias[i];
+    for (uint8_t i = 0; i < (uint8_t)NUM_OF_JOINTS; i++) {
+        angles[i] = potentiometer_read((joint_e)i) - potentiometer_bias[i];
     }
 }
 // #endif

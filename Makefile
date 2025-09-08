@@ -102,6 +102,7 @@ endif
 HEADERS = \
 		  $(SOURCES_WITH_HEADERS:.c=.h) \
 		  src/common/defines.h \
+		  src/common/joints.h \
 
 OBJECT_NAMES = $(SOURCES:.c=.o)
 OBJECTS = $(patsubst %, $(OBJ_DIR)/%, $(OBJECT_NAMES))

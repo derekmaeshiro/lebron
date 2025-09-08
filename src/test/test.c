@@ -602,7 +602,7 @@ void test_potentiometer(void)
     TRACE("Testing potentiometer...");
     while (1) {
         uint8_t current_potentiometer = 0;
-        potentiometer_e potentiometers[] = { THUMB_DISTAL, THUMB_MIDDLE };
+        joint_e potentiometers[] = { THUMB_DISTAL, THUMB_MIDDLE };
         uint16_t angle_value = potentiometer_read(potentiometers[current_potentiometer]);
         TRACE("POTENTIOMETER %u READING: %u", current_potentiometer+1, angle_value);
         // for (uint8_t i = 0; i < ARRAY_SIZE(potentiometers); i++) {
@@ -710,7 +710,7 @@ void test_mpu6050(void)
     read_all_potentiometers(angles);
     struct potentiometer_reading potentiometer_readings[2];
     for(int i=0; i<2; i++){
-        potentiometer_readings[i].potentiometer_board = (potentiometer_e)i;
+        potentiometer_readings[i].potentiometer_board = (joint_e)i;
         potentiometer_readings[i].angle = angles[i];
         TRACE("Potentiometer %u angle: %u", i, angles[i]);
     }
@@ -867,8 +867,8 @@ void test_joint_angles(void)
 
     TRACE("Done initializing...\n");
 
-    float imu_angles[NUM_OF_IMU_ANGLES];
-    
+    float imu_angles[NUM_OF_JOINTS] = {0};  // <-- CHANGE HERE
+
     // Let Madgwick settle by updating all IMUs for 1 second before calibrating
     #define SETTLE_CYCLES 100
     #define UPDATE_PERIOD_MS 5
@@ -890,7 +890,7 @@ void test_joint_angles(void)
         if (now < next_tick) continue;
         next_tick += UPDATE_PERIOD_MS;
 
-        float dt = UPDATE_PERIOD_MS / 1000.0f; // dt is always 10ms or whatever period
+        float dt = UPDATE_PERIOD_MS / 1000.0f; // dt is always 5ms in this example
 
         // Update just ONE IMU per tick
         update_single_imu(&imu_driver, current_imu, dt);
@@ -901,8 +901,8 @@ void test_joint_angles(void)
             // After updating ALL IMUs, now update the joint angles
             update_joint_angles(&imu_driver, imu_angles);
 
-            // Optional: Actuate servo, log, etc
-            float joint_angle = imu_angles[0]; // could be negative!
+            // Example: Use joint for WRIST_WAVE
+            float joint_angle = imu_angles[WRIST_WAVE]; // Or whichever joint you want
 
             // Clamp to range [-90, +90] for safety
             if(joint_angle < -90) joint_angle = -90;
@@ -910,6 +910,13 @@ void test_joint_angles(void)
 
             float servo_angle = joint_angle + 90; // map [-90,90] -> [0,180]
             servo_driver_set_servo_angle(&driver, 0, (uint8_t)servo_angle);
+
+            // Or, iterate all IMU angles you're interested in:
+            for (size_t i = 0; i < NUM_IMU_ANGLE_JOINTS; ++i) {
+                joint_e j = imu_angle_joints[i];
+                joint_angle = imu_angles[j];
+                // Do something with joint_angle!
+            }
         }
     }
 }
@@ -1020,7 +1027,7 @@ else
 //     read_all_potentiometers(angles);
 //     struct potentiometer_reading potentiometer_readings[1];
 //     for(int i=0; i<1; i++){
-//         potentiometer_readings[i].potentiometer_board = (potentiometer_e)i;
+//         potentiometer_readings[i].potentiometer_board = (joint_e)i;
 //         potentiometer_readings[i].angle = angles[i];
 //         TRACE("Potentiometer %u angle: %u", i, angles[i]);
 //     }
@@ -1063,7 +1070,7 @@ void test_potentiometer_to_servo(void){
         adc_init();
         potentiometer_init();
         uint8_t current_potentiometer = 0;
-        potentiometer_e potentiometers[] = { THUMB_DISTAL, THUMB_MIDDLE };
+        joint_e potentiometers[] = { THUMB_DISTAL, THUMB_MIDDLE };
 
         servo_driver_t driver = { 0 };
         servo_channel_t channel = 0;

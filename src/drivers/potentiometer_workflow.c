@@ -10,14 +10,6 @@
 #include <stdbool.h>
 #include <stddef.h> // for size_t
 
-#if defined ARM_SLEEVE
-#define TOTAL_ANGLES NUM_OF_POTENTIOMETERS + NUM_OF_IMU_ANGLES
-#endif
-
-#if defined ROBOTIC_ARM
-#define TOTAL_ANGLES NUM_OF_POTENTIOMETERS
-#endif
-
 bool workflow_enabled = false;
 static bool initialized = false;
 
@@ -74,29 +66,29 @@ void potentiometer_workflow_run(void)
         return;
     }
 
-    uint16_t angles[TOTAL_ANGLES];
+    uint16_t angles[NUM_OF_JOINTS];
     read_all_potentiometers(angles);
 
-    float imu_angles[NUM_OF_IMU_ANGLES];
+    float imu_angles[NUM_OF_JOINTS];
     update_joint_angles(&imu_driver, imu_angles); // TODO: edit dt
 
-    struct potentiometer_reading potentiometer_readings[TOTAL_ANGLES];
-    for (uint8_t i = 0; i < TOTAL_ANGLES; i++) {
+    struct potentiometer_reading potentiometer_readings[NUM_OF_JOINTS];
+    for (uint8_t i = 0; i < NUM_OF_JOINTS; i++) {
         potentiometer_readings[i] =
-            (struct potentiometer_reading) { .potentiometer_board = (potentiometer_e)i,
+            (struct potentiometer_reading) { .potentiometer_board = (joint_e)i,
                                              .angle = angles[i] };
     }
 
-    uart_send_potentiometer_readings(potentiometer_readings, TOTAL_ANGLES);
+    uart_send_potentiometer_readings(potentiometer_readings, NUM_OF_JOINTS);
 }
 #endif
 
 #if defined ROBOTIC_ARM
 
 #define LINE_BUF_SIZE 16
-char readings_storage[TOTAL_ANGLES][LINE_BUF_SIZE] = { { 0 } };
+char readings_storage[NUM_OF_JOINTS][LINE_BUF_SIZE] = { { 0 } };
 // TODO: Edit back to not const
-char *sent_readings[TOTAL_ANGLES] = { 0 };
+char *sent_readings[NUM_OF_JOINTS] = { 0 };
 char line_buf[LINE_BUF_SIZE];
 size_t line_pos = 0;
 size_t count = 0;
@@ -113,7 +105,7 @@ static void poll_serial_and_store(void)
         if (c == '\n') {
             line_buf[line_pos] = '\0'; // null-terminate
             // Copy line_buf into next slot in readings_storage
-            size_t index = count % TOTAL_ANGLES;
+            size_t index = count % NUM_OF_JOINTS;
             for (size_t i = 0; i < line_pos + 1 && i < LINE_BUF_SIZE; ++i) {
                 readings_storage[index][i] = line_buf[i];
             }
@@ -136,14 +128,14 @@ void potentiometer_workflow_run(void)
 
     // TODO: Uncomment out eventually
     // // Make sure we've received enough readings
-    // if (count < TOTAL_ANGLES) {
+    // if (count < NUM_OF_JOINTS) {
     //     // Not enough readings yet, handle as you wish
     //     return;
     // }
 
     poll_serial_and_store();
 
-    // const char *dummy_lines[TOTAL_ANGLES] = {
+    // const char *dummy_lines[NUM_OF_JOINTS] = {
     //     "0,135\n",
     //     "1,100\n",
     //     "2,150\n",
@@ -177,7 +169,7 @@ void potentiometer_workflow_run(void)
 
     struct potentiometer_reading received_potentiometer_readings[NUM_OF_POTENTIOMETERS];
 
-    for (size_t i = 0; i < TOTAL_ANGLES; i++) {
+    for (size_t i = 0; i < NUM_OF_JOINTS; i++) {
         if (sent_readings[i] != NULL) {
             deserialize_potentiometer_reading(sent_readings[i],
                                               &received_potentiometer_readings[i]);
@@ -189,7 +181,7 @@ void potentiometer_workflow_run(void)
     }
 
     // Set the servo angles as received
-    for (size_t i = 0; i < TOTAL_ANGLES; i++) {
+    for (size_t i = 0; i < NUM_OF_JOINTS; i++) {
         struct potentiometer_reading reading = received_potentiometer_readings[i];
         servo_channel_name_t channel_name = (servo_channel_name_t)reading.potentiometer_board;
         servo_channel_t channel = (servo_channel_t)channel_name;

@@ -9,6 +9,18 @@
 
 #include <math.h>
 
+const joint_e imu_angle_joints[] = {
+    WRIST_WAVE,
+    WRIST_FLICK,
+    WRIST_NAE_NAE,
+    ELBOW,
+    BICEP,
+    SHOULDER_FRONT_RAISE,
+    SHOULDER_LAT_RAISE,
+};
+
+const size_t NUM_IMU_ANGLE_JOINTS = sizeof(imu_angle_joints) / sizeof(joint_e);
+
 static void mpu6050_init(uint8_t slave_address)
 {
     // Wake up MPU6050 (write 0x00 to register 0x6B)
