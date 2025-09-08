@@ -121,15 +121,16 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                                  IO_OUT_LOW }, // PB13
     [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0
     [IO_ANALOG_MUX_COM_2] = ADC_CONFIG, // PA1
-    [IO_PWM_DISTAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
-                                              IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA6 TIM?
-    [IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2,
-                                                IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PA7
-    [IO_PWM_METACARPOPHALANGEAL_JOINT_1] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_3,
-                                             IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PC6?
-    [IO_PWM_METACARPOPHALANGEAL_JOINT_2] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_1,
-                                             IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PB10
-
+    [IO_PWM_WRIST_NAE_NAE] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2, IO_RESISTOR_DISABLED,
+                               IO_OUT_LOW }, // PA6 TIM?
+    [IO_PWM_ELBOW] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2, IO_RESISTOR_DISABLED,
+                       IO_OUT_LOW }, // PA7
+    [IO_PWM_BICEP] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_3, IO_RESISTOR_DISABLED,
+                       IO_OUT_LOW }, // PC6?
+    [IO_PWM_SHOULDER_FRONT_RAISE] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_1, IO_RESISTOR_DISABLED,
+                                      IO_OUT_LOW }, // PB10
+    [IO_PWM_SHOULDER_LAT_RAISE] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2, IO_RESISTOR_DISABLED,
+                                    IO_OUT_LOW }, // PB6
     // Board-specific
     [IO_PC13] = { true, IO_SELECT_INPUT, IO_ALT_FUNCTION_0, IO_PULL_UP_ENABLED,
                   IO_OUT_LOW }, // User Button

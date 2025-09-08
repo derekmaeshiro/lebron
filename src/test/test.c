@@ -318,38 +318,38 @@ static void test_trace(void)
     }
 }
 
-SUPPRESS_UNUSED
-static void test_pwm(void)
-{
-    test_setup();
-    trace_init();
-    led_init();
-#if defined ROBOTIC_ARM
-    pwm_init();
-    pwm_e pwms[] = { PWM_DISTAL_INTERPHALANGEAL_JOINT, PWM_PROXIMAL_INTERPHALANGEAL_JOINT,
-                     PWM_METACARPOPHALANGEAL_JOINT_1, PWM_METACARPOPHALANGEAL_JOINT_2 };
-    const int duty_cycles[] = { 0, 20, 40, 60, 80, 100 };
-    const uint16_t wait_time = 3000;
-    while (1) {
-        for (uint8_t i = 0; i < 6; i++) {
-            TRACE("Set duty cycle to %d for %d ms", duty_cycles[i], wait_time);
-            led_set(LED_TEST, LED_STATE_ON);
-            for (uint8_t j = 0; j < ARRAY_SIZE(pwms); j++) {
-                pwm_set_duty_cycle(pwms[j], duty_cycles[i]);
-            }
-            BUSY_WAIT_ms(wait_time);
+// SUPPRESS_UNUSED
+// static void test_pwm(void)
+// {
+//     test_setup();
+//     trace_init();
+//     led_init();
+// #if defined ROBOTIC_ARM
+//     pwm_init();
+//     pwm_e pwms[] = { PWM_DISTAL_INTERPHALANGEAL_JOINT, PWM_PROXIMAL_INTERPHALANGEAL_JOINT,
+//                      PWM_METACARPOPHALANGEAL_JOINT_1, PWM_METACARPOPHALANGEAL_JOINT_2 };
+//     const int duty_cycles[] = { 0, 20, 40, 60, 80, 100 };
+//     const uint16_t wait_time = 3000;
+//     while (1) {
+//         for (uint8_t i = 0; i < 6; i++) {
+//             TRACE("Set duty cycle to %d for %d ms", duty_cycles[i], wait_time);
+//             led_set(LED_TEST, LED_STATE_ON);
+//             for (uint8_t j = 0; j < ARRAY_SIZE(pwms); j++) {
+//                 pwm_set_duty_cycle(pwms[j], duty_cycles[i]);
+//             }
+//             BUSY_WAIT_ms(wait_time);
 
-            // Turn off the PWM channel and toggle off LED
-            TRACE("Turning off PWM and waiting for %d ms", wait_time);
-            led_set(LED_TEST, LED_STATE_OFF);
-            for (uint8_t j = 0; j < ARRAY_SIZE(pwms); j++) {
-                pwm_set_duty_cycle(pwms[j], 0);
-            }
-            BUSY_WAIT_ms(wait_time);
-        }
-    }
-#endif
-}
+//             // Turn off the PWM channel and toggle off LED
+//             TRACE("Turning off PWM and waiting for %d ms", wait_time);
+//             led_set(LED_TEST, LED_STATE_OFF);
+//             for (uint8_t j = 0; j < ARRAY_SIZE(pwms); j++) {
+//                 pwm_set_duty_cycle(pwms[j], 0);
+//             }
+//             BUSY_WAIT_ms(wait_time);
+//         }
+//     }
+// #endif
+// }
 
 SUPPRESS_UNUSED
 static void test_adc(void)
@@ -1138,6 +1138,51 @@ void test_get_ms(void)
         if (get_ms() != last) {
             last = get_ms();
             GPIOC->ODR ^= (1 << 13); // Or whichever pin you have connected to your scope
+        }
+    }
+}
+
+void test_pwm_init(void)
+{
+    test_setup();
+    trace_init();
+    led_init();
+
+    pwm_init();
+
+    for (size_t i = 0; i < NUM_PWM_CHANNELS; ++i) {
+        pwm_set_duty_cycle(pwm_joints[i], 50); // Set to 50% duty cycle
+    }
+}
+
+void test_pwm(void)
+{
+    #define WAIT_TIME_MS 3000
+    test_setup();
+    trace_init();
+    led_init();
+
+    pwm_init();
+
+    // Use pwm_joints from pwm.h
+    const int duty_cycles[] = { 0, 20, 40, 60, 80, 100 };
+
+    while (1) {
+        for (uint8_t i = 0; i < sizeof(duty_cycles)/sizeof(duty_cycles[0]); i++) {
+            TRACE("Set duty cycle to %d for %d ms\n", duty_cycles[i], WAIT_TIME_MS);
+            led_set(LED_TEST, LED_STATE_ON);
+            // set duty cycle for each joint
+            for (uint8_t j = 0; j < NUM_PWM_CHANNELS; j++) {
+                pwm_set_duty_cycle(pwm_joints[j], duty_cycles[i]);
+            }
+            BUSY_WAIT_ms(WAIT_TIME_MS);
+
+            TRACE("Turning off PWM and waiting for %d ms\n", WAIT_TIME_MS);
+            led_set(LED_TEST, LED_STATE_OFF);
+            for (uint8_t j = 0; j < NUM_PWM_CHANNELS; j++) {
+                pwm_set_duty_cycle(pwm_joints[j], 0);
+            }
+            BUSY_WAIT_ms(WAIT_TIME_MS);
         }
     }
 }
