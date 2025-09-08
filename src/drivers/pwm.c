@@ -164,7 +164,11 @@ void pwm_channel_enable(joint_e joint)
     *(ch->cce) |= ch->ccer_mask;
 
     // For advanced-control timers like TIM8, enable main output
-    if (tim == TIM1 || tim == TIM8) {
+    if (tim == TIM1
+#if defined(ROBOTIC_ARM)
+        || tim == TIM8
+#endif
+    ) {
         tim->BDTR |= TIM_BDTR_MOE;
     }
 }
