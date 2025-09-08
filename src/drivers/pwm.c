@@ -60,6 +60,7 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .ccer_mask = TIM_CCER_CC2E,
     },
 
+#if defined(ROBOTIC_ARM)
     {
         .tim = TIM8,
         .ccm = &TIM8->CCMR1,
@@ -70,6 +71,7 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .oc_shift = 4,
         .ocpe_mask = TIM_CCMR1_OC1PE,
     },
+#endif
 
     {
         .tim = TIM2,
@@ -101,18 +103,37 @@ void pwm_init(void)
 {
     ASSERT(!initialized);
 
-    // Enable timer clocks
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN;
+#if defined(ROBOTIC_ARM)
     RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
+#endif
 
-    TIM2->PSC = (84000000UL / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
-    TIM3->PSC = (84000000UL / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
-    TIM8->PSC = (84000000UL / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
+    // APB1 = 42MHz (timers = 84MHz), APB2 = 84MHz (timers = 168MHz)
+    uint32_t tim_apb1_clk = 84000000UL;  // TIM2,3,4
+    uint32_t tim_apb2_clk = 168000000UL; // TIM8
 
-    // Use standardized ARR
-    TIM2->ARR = TIM3->ARR = TIM8->ARR = PWM_PERIOD_TICKS - 1;
+    uint32_t psc_val_apb1 = (tim_apb1_clk / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
+    uint32_t psc_val_apb2 = (tim_apb2_clk / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
+    uint32_t arr_val = PWM_PERIOD_TICKS - 1;
 
-    TIM2->CNT = TIM3->CNT = TIM8->CNT = 0;
+    TIM2->PSC = psc_val_apb1;
+    TIM3->PSC = psc_val_apb1;
+    TIM4->PSC = psc_val_apb1;
+#if defined(ROBOTIC_ARM)
+    TIM8->PSC = psc_val_apb2;
+#endif
+
+    TIM2->ARR = arr_val;
+    TIM3->ARR = arr_val;
+    TIM4->ARR = arr_val;
+#if defined(ROBOTIC_ARM)
+    TIM8->ARR = arr_val;
+#endif
+
+    TIM2->CNT = TIM3->CNT = TIM4->CNT = 0;
+#if defined(ROBOTIC_ARM)
+    TIM8->CNT = 0;
+#endif
 
     initialized = true;
 }
