@@ -10,13 +10,7 @@
 #include <math.h>
 
 const joint_e imu_angle_joints[] = {
-    WRIST_WAVE,
-    WRIST_FLICK,
-    WRIST_NAE_NAE,
-    ELBOW,
-    BICEP,
-    SHOULDER_FRONT_RAISE,
-    SHOULDER_LAT_RAISE,
+    WRIST_WAVE, WRIST_FLICK, WRIST_NAE_NAE, ELBOW, BICEP, SHOULDER_FRONT_RAISE, SHOULDER_LAT_RAISE,
 };
 
 const size_t NUM_IMU_ANGLE_JOINTS = sizeof(imu_angle_joints) / sizeof(joint_e);

@@ -167,7 +167,7 @@ void potentiometer_workflow_run(void)
     //     sent_readings[i] = dummy_lines[i];
     // }
 
-    struct potentiometer_reading received_potentiometer_readings[NUM_OF_POTENTIOMETERS];
+    struct potentiometer_reading received_potentiometer_readings[NUM_OF_JOINTS];
 
     for (size_t i = 0; i < NUM_OF_JOINTS; i++) {
         if (sent_readings[i] != NULL) {
@@ -175,7 +175,7 @@ void potentiometer_workflow_run(void)
                                               &received_potentiometer_readings[i]);
         } else {
             // Handle missing readings: set to zero, skip, etc.
-            received_potentiometer_readings[i].potentiometer_board = (potentiometer_e)i;
+            received_potentiometer_readings[i].potentiometer_board = (joint_e)i;
             received_potentiometer_readings[i].angle = 0;
         }
     }
