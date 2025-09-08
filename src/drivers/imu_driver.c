@@ -1,5 +1,5 @@
 #include "imu_driver.h"
-#include "uart.h"
+// #include "uart.h"
 #include "../common/trace.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
@@ -8,6 +8,12 @@
 #include "MadgwickAHRS.h"
 
 #include <math.h>
+
+const joint_e imu_angle_joints[] = {
+    WRIST_WAVE, WRIST_FLICK, WRIST_NAE_NAE, ELBOW, BICEP, SHOULDER_FRONT_RAISE, SHOULDER_LAT_RAISE,
+};
+
+const size_t NUM_IMU_ANGLE_JOINTS = sizeof(imu_angle_joints) / sizeof(joint_e);
 
 static void mpu6050_init(uint8_t slave_address)
 {
@@ -26,7 +32,7 @@ void imu_driver_init(imu_driver_t *imu_driver, uint8_t slave_address)
     imu_driver->slave_address = slave_address; // Set I2C mux address
 
     // Initialize all sensors to default values (you could also use memset)
-    for (int i = IMU_PALM; i < IMU_DRIVER_MAX_CHANNELS; i++) {
+    for (int i = IMU_PALM; i < NUM_OF_IMU_SENSORS; i++) {
 
         imu_driver->imu_sensors[i].channel_number = (imu_channel_t)i;
         imu_driver->imu_sensors[i].roll = 0;
@@ -73,28 +79,27 @@ void imu_driver_read_all(const imu_driver_t *imu_driver, imu_channel_t channel, 
     *gz = (int16_t)((data[12] << 8) | data[13]);
 }
 
-int16_t gx_bias[IMU_DRIVER_MAX_CHANNELS] = { 0, 0 }, gy_bias[IMU_DRIVER_MAX_CHANNELS] = { 0, 0 },
-        gz_bias[IMU_DRIVER_MAX_CHANNELS] = { 0, 0 };
+int16_t gx_bias[NUM_OF_IMU_SENSORS] = { 0, 0, 0, 0, 0, 0 },
+        gy_bias[NUM_OF_IMU_SENSORS] = { 0, 0, 0, 0, 0, 0 },
+        gz_bias[NUM_OF_IMU_SENSORS] = { 0, 0, 0, 0, 0, 0 };
 
-void calibrate_imus(const imu_driver_t *imu_driver)
+#define NUM_GYRO_CAL_SAMPLES 100
+
+void calibrate_gyro_biases(const imu_driver_t *imu_driver)
 {
-    for (int channel = 0; channel < 2; channel++) {
+    for (int channel = 0; channel < NUM_OF_IMU_SENSORS; ++channel) {
         int32_t gx_sum = 0, gy_sum = 0, gz_sum = 0;
-        int n_samples = 200; // do 200 samples
-        for (int i = 0; i < n_samples; i++) {
+        for (int i = 0; i < NUM_GYRO_CAL_SAMPLES; ++i) {
             int16_t ax, ay, az, gx, gy, gz;
             imu_driver_read_all(imu_driver, channel, &ax, &ay, &az, &gx, &gy, &gz);
             gx_sum += gx;
             gy_sum += gy;
             gz_sum += gz;
-            BUSY_WAIT_ms(2);
+            BUSY_WAIT_ms(2); // let sensor settle
         }
-        gx_bias[channel] = gx_sum / n_samples;
-        gy_bias[channel] = gy_sum / n_samples;
-        gz_bias[channel] = gz_sum / n_samples;
-
-        // TRACE("Bias CH%d: gx=%d gy=%d gz=%d\n", channel, gx_bias[channel], gy_bias[channel],
-        // gz_bias[channel]);
+        gx_bias[channel] = gx_sum / NUM_GYRO_CAL_SAMPLES;
+        gy_bias[channel] = gy_sum / NUM_GYRO_CAL_SAMPLES;
+        gz_bias[channel] = gz_sum / NUM_GYRO_CAL_SAMPLES;
     }
 }
 
@@ -102,7 +107,7 @@ void calibrate_imus(const imu_driver_t *imu_driver)
 #define MPU6050_GYRO_SENS_250 131.0f
 #define DEG_TO_RAD (3.14159265359f / 180.0f)
 
-void update_quaternion(imu_driver_t *imu_driver, imu_channel_t channel)
+void update_quaternion(imu_driver_t *imu_driver, imu_channel_t channel, float dt)
 {
     int16_t ax, ay, az, gx, gy, gz;
     imu_driver_read_all(imu_driver, channel, &ax, &ay, &az, &gx, &gy, &gz);
@@ -136,26 +141,88 @@ void update_quaternion(imu_driver_t *imu_driver, imu_channel_t channel)
     // TRACE("Accel CH%d: q0=%d q1=%d q2=%d q3=%d\n", channel, (int)(q0 * 1000), (int)(q1 * 1000),
     // (int)(q2 * 1000), (int) (q3 * 1000));
 
-    MadgwickAHRSupdate(gx_rs, gy_rs, gz_rs, ax_g, ay_g, az_g, 0.0, 0.0, 0.0, &q0, &q1, &q2, &q3);
+    MadgwickAHRSupdate(gx_rs, gy_rs, gz_rs, ax_g, ay_g, az_g, 0.0, 0.0, 0.0, &q0, &q1, &q2, &q3,
+                       dt);
 
-    // // 1. Enable GPIOC clock
-    // RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
-
-    // // 2. Set PC13 as output (clear MODER bits to 00, then set to 01)
-    // GPIOC->MODER &= ~(0x3 << (13 * 2)); // Clear old mode
-    // GPIOC->MODER |=  (0x1 << (13 * 2)); // Set output mode
-
-    // // Optional: Set output speed, type, no pull-up/down
-    // GPIOC->OTYPER &= ~(1 << 13);             // Push-pull
-    // GPIOC->OSPEEDR |= (0x3 << (13 * 2));     // High speed
-    // GPIOC->PUPDR &= ~(0x3 << (13 * 2));      // No pull, no up/down
-
-    // GPIOC->ODR ^= (1 << 13);
+    GPIOC->ODR ^= (1 << 14);
 
     imu_driver->imu_sensors[channel].q0 = q0;
     imu_driver->imu_sensors[channel].q1 = q1;
     imu_driver->imu_sensors[channel].q2 = q2;
     imu_driver->imu_sensors[channel].q3 = q3;
+}
+
+// q1: proximal segment quaternion (e.g. upper arm), q2: distal (e.g. forearm)
+static void quaternion_conjugate(const float *q, float *qc)
+{
+    qc[0] = q[0];
+    qc[1] = -q[1];
+    qc[2] = -q[2];
+    qc[3] = -q[3];
+}
+
+// quaternion multiplication: q_out = q1 * q2
+static void quaternion_multiply(const float *q1, const float *q2, float *q_out)
+{
+    q_out[0] = q1[0] * q2[0] - q1[1] * q2[1] - q1[2] * q2[2] - q1[3] * q2[3];
+    q_out[1] = q1[0] * q2[1] + q1[1] * q2[0] + q1[2] * q2[3] - q1[3] * q2[2];
+    q_out[2] = q1[0] * q2[2] - q1[1] * q2[3] + q1[2] * q2[0] + q1[3] * q2[1];
+    q_out[3] = q1[0] * q2[3] + q1[1] * q2[2] - q1[2] * q2[1] + q1[3] * q2[0];
+}
+
+float get_joint_angle_quaternion(const imu_sensor_t *imu_proximal, // e.g., upper arm
+                                 const imu_sensor_t *imu_distal, // e.g., forearm
+                                 char axis // 'p'/pitch, 'r'/roll, 'y'/yaw
+)
+{
+    const float qA[4] = { imu_proximal->q0, imu_proximal->q1, imu_proximal->q2, imu_proximal->q3 };
+    const float qB[4] = { imu_distal->q0, imu_distal->q1, imu_distal->q2, imu_distal->q3 };
+    float qA_conj[4], q_rel[4];
+    quaternion_conjugate(qA, qA_conj);
+    quaternion_multiply(qB, qA_conj, q_rel);
+
+    // Convert q_rel to Euler
+    float roll = atan2(2 * (q_rel[0] * q_rel[1] + q_rel[2] * q_rel[3]),
+                       1 - 2 * (q_rel[1] * q_rel[1] + q_rel[2] * q_rel[2]));
+    float pitch = asin(2 * (q_rel[0] * q_rel[2] - q_rel[3] * q_rel[1]));
+    float yaw = atan2(2 * (q_rel[0] * q_rel[3] + q_rel[1] * q_rel[2]),
+                      1 - 2 * (q_rel[2] * q_rel[2] + q_rel[3] * q_rel[3]));
+
+    pitch *= (180.0f / 3.14159265f);
+    roll *= (180.0f / 3.14159265f);
+    yaw *= (180.0f / 3.14159265f);
+
+    switch (axis) {
+    case 'p':
+        return pitch; // elbow flexion/extension, shoulder flexion
+    case 'r':
+        return roll; // wrist wave, etc.
+    case 'y':
+        return yaw; // pronation/supination, shoulder rotation
+    default:
+        return pitch;
+    }
+}
+
+void calibrate_joint_zero_pose(imu_driver_t *imu_driver)
+{
+    // Capture current joint angles as reference
+    imu_driver->zero_pose[WRIST_WAVE] = get_joint_angle_quaternion(
+        &imu_driver->imu_sensors[IMU_PALM], &imu_driver->imu_sensors[IMU_LOWER_WRIST], 'p');
+    imu_driver->zero_pose[WRIST_FLICK] = get_joint_angle_quaternion(
+        &imu_driver->imu_sensors[IMU_PALM], &imu_driver->imu_sensors[IMU_LOWER_WRIST], 'y');
+    imu_driver->zero_pose[WRIST_NAE_NAE] = get_joint_angle_quaternion(
+        &imu_driver->imu_sensors[IMU_PALM], &imu_driver->imu_sensors[IMU_LOWER_WRIST], 'r');
+    imu_driver->zero_pose[ELBOW] = get_joint_angle_quaternion(
+        &imu_driver->imu_sensors[IMU_UPPER_ELBOW], &imu_driver->imu_sensors[IMU_LOWER_ELBOW], 'p');
+    imu_driver->zero_pose[BICEP] = get_joint_angle_quaternion(
+        &imu_driver->imu_sensors[IMU_UPPER_ELBOW], &imu_driver->imu_sensors[IMU_LOWER_ELBOW], 'r');
+    imu_driver->zero_pose[SHOULDER_FRONT_RAISE] =
+        get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_LOWER_SHOULDER],
+                                   &imu_driver->imu_sensors[IMU_UPPER_SHOULDER], 'y');
+    imu_driver->zero_pose[SHOULDER_LAT_RAISE] =
+        get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_LOWER_SHOULDER],
+                                   &imu_driver->imu_sensors[IMU_UPPER_SHOULDER], 'p');
 }
 
 void convert_quaternion_to_euler(imu_driver_t *imu_driver, imu_channel_t channel)
@@ -168,8 +235,8 @@ void convert_quaternion_to_euler(imu_driver_t *imu_driver, imu_channel_t channel
     //   (int)(q0 * 1000), (int)(q1 * 1000), (int)(q2 * 1000), (int)(q3 * 1000));
 
     // Convert quaternion to Euler angles (in radians)
-    float pitch = (float)atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2));
-    float roll = (float)asin(2 * (q0 * q2 - q3 * q1));
+    float roll = (float)atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2));
+    float pitch = (float)asin(2 * (q0 * q2 - q3 * q1));
     float yaw = (float)atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3));
 
     // If you want degrees:
@@ -191,61 +258,73 @@ void convert_quaternion_to_euler(imu_driver_t *imu_driver, imu_channel_t channel
 //     return imu_angle_2 - imu_angle_1; // signed difference
 // }
 
-static float get_joint_angle(float imu_angle_1, float imu_angle_2)
+// static float get_joint_angle(float imu_angle_1, float imu_angle_2)
+// {
+//     float ROM_ori = imu_angle_2 - imu_angle_1;
+//     if (ROM_ori < 0)
+//         ROM_ori += 360; // Ensure positive angle
+
+//     float ROM_ij;
+//     if (ROM_ori > 180)
+//         ROM_ij = 360 - ROM_ori;
+//     else
+//         ROM_ij = ROM_ori;
+
+//     return ROM_ij;
+// }
+
+// Wrap angle to [-180,180]
+float normalize_angle(float angle)
 {
-    float ROM_ori = imu_angle_2 - imu_angle_1;
-    if (ROM_ori < 0)
-        ROM_ori += 360; // Ensure positive angle
+    while (angle < -180.0f)
+        angle += 360.0f;
+    while (angle > 180.0f)
+        angle -= 360.0f;
+    return angle;
+}
 
-    float ROM_ij;
-    if (ROM_ori > 180)
-        ROM_ij = 360 - ROM_ori;
-    else
-        ROM_ij = ROM_ori;
-
-    return ROM_ij;
+void update_single_imu(imu_driver_t *imu_driver, int channel, float dt)
+{
+    update_quaternion(imu_driver, channel, dt);
+    convert_quaternion_to_euler(imu_driver, channel);
+    // Optionally blink LED to show which one updated
+    GPIOC->ODR ^= (1 << 13);
 }
 
 void update_joint_angles(imu_driver_t *imu_driver, float *imu_angles)
 {
-    for (int channel = IMU_PALM; channel < IMU_DRIVER_MAX_CHANNELS; channel++) {
-        update_quaternion(imu_driver, channel);
-        convert_quaternion_to_euler(imu_driver, channel);
-    }
+    imu_angles[WRIST_WAVE] =
+        normalize_angle(get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_PALM],
+                                                   &imu_driver->imu_sensors[IMU_LOWER_WRIST], 'p')
+                        - imu_driver->zero_pose[WRIST_WAVE]);
 
-    float pitch_palm = imu_driver->imu_sensors[IMU_PALM].pitch;
-    float pitch_lower_wrist = imu_driver->imu_sensors[IMU_LOWER_WRIST].pitch;
-    float roll_palm = imu_driver->imu_sensors[IMU_PALM].roll;
-    float roll_lower_wrist = imu_driver->imu_sensors[IMU_LOWER_WRIST].roll;
-    float yaw_palm = imu_driver->imu_sensors[IMU_PALM].yaw;
-    float yaw_lower_wrist = imu_driver->imu_sensors[IMU_LOWER_WRIST].yaw;
+    imu_angles[WRIST_FLICK] =
+        normalize_angle(get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_PALM],
+                                                   &imu_driver->imu_sensors[IMU_LOWER_WRIST], 'y')
+                        - imu_driver->zero_pose[WRIST_FLICK]);
 
-    // float pitch_upper_elbow = imu_driver->imu_sensors[IMU_UPPER_ELBOW].pitch;
-    // float pitch_lower_elbow = imu_driver->imu_sensors[IMU_LOWER_ELBOW].pitch;
-    // float roll_upper_elbow = imu_driver->imu_sensors[IMU_UPPER_ELBOW].roll;
-    // float roll_lower_elbow = imu_driver->imu_sensors[IMU_LOWER_ELBOW].roll;
-    // float yaw_upper_elbow = imu_driver->imu_sensors[IMU_UPPER_ELBOW].yaw;
-    // float yaw_lower_elbow = imu_driver->imu_sensors[IMU_LOWER_ELBOW].yaw;
+    imu_angles[WRIST_NAE_NAE] =
+        normalize_angle(get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_PALM],
+                                                   &imu_driver->imu_sensors[IMU_LOWER_WRIST], 'r')
+                        - imu_driver->zero_pose[WRIST_NAE_NAE]);
 
-    // float pitch_lower_shoulder = imu_driver->imu_sensors[IMU_LOWER_SHOULDER].pitch;
-    // float pitch_upper_shoulder = imu_driver->imu_sensors[IMU_UPPER_SHOULDER].pitch;
-    // float roll_lower_shoulder = imu_driver->imu_sensors[IMU_LOWER_SHOULDER].roll;
-    // float roll_upper_shoulder = imu_driver->imu_sensors[IMU_UPPER_SHOULDER].roll;
-    // float yaw_lower_shoulder = imu_driver->imu_sensors[IMU_LOWER_SHOULDER].yaw;
-    // float yaw_upper_shoulder = imu_driver->imu_sensors[IMU_UPPER_SHOULDER].yaw;
+    imu_angles[ELBOW] =
+        normalize_angle(get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_UPPER_ELBOW],
+                                                   &imu_driver->imu_sensors[IMU_LOWER_ELBOW], 'p')
+                        - imu_driver->zero_pose[ELBOW]);
 
-    imu_angles[0] = get_joint_angle(pitch_palm, pitch_lower_wrist);
-    imu_angles[1] = get_joint_angle(roll_palm, roll_lower_wrist);
-    imu_angles[2] = get_joint_angle(yaw_palm, yaw_lower_wrist);
+    imu_angles[BICEP] =
+        normalize_angle(get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_UPPER_ELBOW],
+                                                   &imu_driver->imu_sensors[IMU_LOWER_ELBOW], 'r')
+                        - imu_driver->zero_pose[BICEP]);
 
-    // TRACE("Joint angles: pitch=%d roll=%d yaw=%d\n",
-    //   (int)(imu_angles[0] * 1000),
-    //   (int)(imu_angles[1] * 1000),
-    //   (int)(imu_angles[2] * 1000));
-    // imu_angles[3] = (uint16_t)get_joint_angle(pitch_upper_elbow, pitch_lower_elbow);
-    // imu_angles[4] = (uint16_t)get_joint_angle(roll_upper_elbow, roll_lower_elbow);
-    // imu_angles[5] = (uint16_t)get_joint_angle(yaw_upper_elbow, yaw_lower_elbow);
-    // imu_angles[6] = (uint16_t)get_joint_angle(pitch_lower_shoulder, pitch_upper_shoulder);
-    // imu_angles[7] = (uint16_t)get_joint_angle(roll_lower_shoulder, roll_upper_shoulder);
-    // imu_angles[8] = (uint16_t)get_joint_angle(yaw_lower_shoulder, yaw_upper_shoulder);
+    imu_angles[SHOULDER_FRONT_RAISE] = normalize_angle(
+        get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_LOWER_SHOULDER],
+                                   &imu_driver->imu_sensors[IMU_UPPER_SHOULDER], 'y')
+        - imu_driver->zero_pose[SHOULDER_FRONT_RAISE]);
+
+    imu_angles[SHOULDER_LAT_RAISE] = normalize_angle(
+        get_joint_angle_quaternion(&imu_driver->imu_sensors[IMU_LOWER_SHOULDER],
+                                   &imu_driver->imu_sensors[IMU_UPPER_SHOULDER], 'p')
+        - imu_driver->zero_pose[SHOULDER_LAT_RAISE]);
 }

@@ -4,7 +4,6 @@
 #ifndef ANALOG_MUX_H
 #define ANALOG_MUX_H
 
-// #if defined ROBOTIC_ARM
 typedef enum {
     MUX_BOARD_1,
     MUX_BOARD_2,
@@ -12,6 +11,5 @@ typedef enum {
 
 void analog_mux_init(void);
 void toggle_analog_mux(analog_mux_e mux, uint8_t mux_pin);
-#endif
 
-// #endif
+#endif

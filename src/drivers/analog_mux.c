@@ -5,7 +5,6 @@
 #include "../common/trace.h"
 #include <stdbool.h>
 
-// #if defined ROBOTIC_ARM
 static bool initialized = false;
 void analog_mux_init(void)
 {
@@ -60,4 +59,3 @@ void toggle_analog_mux(analog_mux_e mux, uint8_t mux_pin)
     }
     BUSY_WAIT_ms(20);
 }
-// #endif
