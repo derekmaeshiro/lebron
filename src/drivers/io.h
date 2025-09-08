@@ -102,10 +102,11 @@ typedef enum {
     IO_ANALOG_MUX_ENABLE_2 = IO_PB13, // Analog Mux Enable Pin
     IO_ANALOG_MUX_COM_1 = IO_PA0, // Analog Mux Output Pin
     IO_ANALOG_MUX_COM_2 = IO_PA1, // Analog Mux Output Pin
-    IO_PWM_DISTAL_INTERPHALANGEAL_JOINT = IO_PA6, // DIP (top) (orientation #1)
-    IO_PWM_PROXIMAL_INTERPHALANGEAL_JOINT = IO_PA7, // PIP (middle) (orientation #1)
-    IO_PWM_METACARPOPHALANGEAL_JOINT_1 = IO_PC6, // MCP (knuckles) (orientation #1)
-    IO_PWM_METACARPOPHALANGEAL_JOINT_2 = IO_PB10, // MCP (knuckles) (orientation #2)
+    IO_PWM_WRIST_NAE_NAE = IO_PA6, // DC Motor H-Bridge #1
+    IO_PWM_ELBOW = IO_PA7, // DC Motor H-Bridge #2
+    IO_PWM_BICEP = IO_PC6, // DC Motor H-Bridge #3
+    IO_PWM_SHOULDER_FRONT_RAISE = IO_PB10, // DC Motor H-Bridge #4
+    IO_PWM_SHOULDER_LAT_RAISE = IO_PB6, // DC Motor H-Bridge #5
 #endif
 } io_e;
 

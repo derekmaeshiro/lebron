@@ -1,16 +1,29 @@
-#include <stm32f4xx.h>
 #include "pwm.h"
 #include "io.h"
-#include <stdbool.h>
-#include <stddef.h>
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 #include "../common/trace.h"
 
-#if defined ROBOTIC_ARM
+#include <stm32f4xx.h>
+#include <stdbool.h>
+#include <stddef.h>
+
 #define PWM_FREQ_HZ 1000
 #define PWM_RESOLUTION 18464
 #define PWM_PERIOD_TICKS PWM_RESOLUTION
+
+const joint_e pwm_joints[] = {
+    WRIST_NAE_NAE, ELBOW, BICEP, SHOULDER_FRONT_RAISE, SHOULDER_LAT_RAISE,
+};
+
+int get_pwm_channel_index(joint_e joint)
+{
+    for (size_t i = 0; i < (int)NUM_PWM_CHANNELS; ++i) {
+        if (pwm_joints[i] == joint)
+            return i;
+    }
+    return -1; // Not a PWM-controlled joint
+}
 
 struct pwm_channel_config
 {
@@ -25,7 +38,7 @@ struct pwm_channel_config
 };
 
 static struct pwm_channel_config pwm_channel_configs[] = {
-    [PWM_DISTAL_INTERPHALANGEAL_JOINT] = {
+    {
         .tim = TIM3,
         .ccr = &TIM3->CCR1,
         .ccm = &TIM3->CCMR1,
@@ -35,7 +48,8 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .ocpe_mask = TIM_CCMR1_OC1PE,
         .ccer_mask = TIM_CCER_CC1E,
     },
-    [PWM_PROXIMAL_INTERPHALANGEAL_JOINT] = {
+
+    {
         .tim = TIM3,
         .ccr = &TIM3->CCR2,
         .ccm = &TIM3->CCMR1,
@@ -45,7 +59,8 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .ocpe_mask = TIM_CCMR1_OC2PE,
         .ccer_mask = TIM_CCER_CC2E,
     },
-    [PWM_METACARPOPHALANGEAL_JOINT_1] = {
+
+    {
         .tim = TIM8,
         .ccm = &TIM8->CCMR1,
         .cce = &TIM8->CCER,
@@ -55,7 +70,8 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .oc_shift = 4,
         .ocpe_mask = TIM_CCMR1_OC1PE,
     },
-    [PWM_METACARPOPHALANGEAL_JOINT_2] = {
+
+    {
         .tim = TIM2,
         .ccm = &TIM2->CCMR2,
         .cce = &TIM2->CCER,
@@ -64,6 +80,17 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .ccer_mask = TIM_CCER_CC3E,
         .oc_shift = 4,
         .ocpe_mask = TIM_CCMR2_OC3PE,
+    },
+
+    {
+        .tim = TIM4,
+        .ccm = &TIM4->CCMR1,
+        .cce = &TIM4->CCER,
+        .ccr = &TIM4->CCR1,
+        .egr = &TIM4->EGR,
+        .ccer_mask = TIM_CCER_CC1E,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR1_OC1PE,
     },
 };
 
@@ -75,7 +102,7 @@ void pwm_init(void)
     ASSERT(!initialized);
 
     // Enable timer clocks
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN;
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN;
     RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
 
     TIM2->PSC = (84000000UL / (PWM_PERIOD_TICKS * PWM_FREQ_HZ)) - 1;
@@ -90,10 +117,11 @@ void pwm_init(void)
     initialized = true;
 }
 
-void pwm_channel_enable(pwm_e pwm)
+void pwm_channel_enable(joint_e joint)
 {
-    ASSERT(pwm < ARRAY_SIZE(pwm_channel_configs));
-    struct pwm_channel_config *ch = &pwm_channel_configs[pwm];
+    int idx = get_pwm_channel_index(joint);
+    ASSERT(idx >= 0 && idx < (int)NUM_PWM_CHANNELS);
+    struct pwm_channel_config *ch = &pwm_channel_configs[idx];
 
     TIM_TypeDef *tim = ch->tim;
 
@@ -127,18 +155,17 @@ static inline uint32_t pwm_scale_duty_cycle(struct pwm_channel_config *ch,
     return (duty_cycle_percent * period) / 100;
 }
 
-void pwm_set_duty_cycle(pwm_e pwm, uint8_t duty_cycle_percent)
+void pwm_set_duty_cycle(joint_e joint, uint8_t duty_cycle_percent)
 {
-    ASSERT(pwm < ARRAY_SIZE(pwm_channel_configs));
-    struct pwm_channel_config *ch = &pwm_channel_configs[pwm];
+    int idx = get_pwm_channel_index(joint);
+    ASSERT(idx >= 0 && idx < (int)NUM_PWM_CHANNELS);
+    struct pwm_channel_config *ch = &pwm_channel_configs[idx];
 
     if (duty_cycle_percent > 0) {
         uint32_t ccr_val = pwm_scale_duty_cycle(ch, duty_cycle_percent);
         *(ch->ccr) = ccr_val;
-        pwm_channel_enable(pwm);
+        pwm_channel_enable(joint);
     } else {
         *(ch->ccr) = 0;
     }
 }
-
-#endif
