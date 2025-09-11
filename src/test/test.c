@@ -1208,6 +1208,50 @@ void test_pwm(void)
     }
 }
 
+void test_dc_motor_movement(void)
+{
+    test_setup();
+    trace_init();
+    adc_init();
+    led_init();
+    pwm_init();
+    potentiometer_init();
+    smart_motor_init();
+
+    pwm_set_duty_cycle(PWM_R_WRIST_NAE_NAE, 100);
+    pwm_set_duty_cycle(PWM_L_WRIST_NAE_NAE, 0);
+    BUSY_WAIT_ms(2000);
+    pwm_set_duty_cycle(PWM_R_WRIST_NAE_NAE, 0); // Stop
+    pwm_set_duty_cycle(PWM_L_WRIST_NAE_NAE, 0);
+    TRACE("end\n");
+}
+
+void test_potentiometer_adc(void) 
+{
+    test_setup();
+    trace_init();
+    adc_init();
+    led_init();
+    pwm_init();
+    potentiometer_init();
+    smart_motor_init();
+
+    while (1) {
+        // Select mux board 2, channel/pin 5
+        toggle_analog_mux(MUX_BOARD_2, 5);
+
+        // Discard first ADC read after mux switching, per your driver
+        adc_read_single(1);       
+
+        // Now read the actual value: board 2 = ADC channel 1 (per your API)
+        uint16_t raw = adc_read_single(1);
+
+        TRACE("ADC Raw (Mux2, Ch5): %u\n", raw);
+
+        BUSY_WAIT_ms(100); // adjust as desired
+    }
+}
+
 void test_wrist_nae_nae(void)
 {
     test_setup();
@@ -1218,16 +1262,18 @@ void test_wrist_nae_nae(void)
     potentiometer_init();
     smart_motor_init();
 
-    // Move WRIST_NAE_NAE to 60°
-    smart_motor_set_angle(WRIST_NAE_NAE, 60);
+    joint_e test_joint = WRIST_NAE_NAE; // Change to another joint if needed
+
+    // Move WRIST_NAE_NAE to 0°
+    smart_motor_set_angle(test_joint, 60);
     TRACE("smart motor set angle done\n");
 
     // Run the PID update loop for a while (here, 4 seconds if you call every 20ms)
     for (int i = 0; i < 200; ++i) {
-        TRACE("going into the loop\n");
+        uint16_t angle = potentiometer_read(test_joint);
+        TRACE("potentiometer_read for joint %d: angle=%u\n", test_joint, angle);
         smart_motor_update();
         BUSY_WAIT_ms(20);
-        TRACE("one loop\n");
     }
 }
 

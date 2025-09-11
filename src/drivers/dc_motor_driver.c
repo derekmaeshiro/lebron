@@ -82,61 +82,61 @@ void smart_motor_set_pid(joint_e joint, float Kp, float Ki, float Kd, float Ts)
     }
 }
 
-// static float motor_pid_calc(smart_motor_t *m, float measured_input)
-// {
-//     float error = (float)m->setpoint - measured_input;
-//     int apply_integrator = 1;
-//     if (m->Anti_windup && fabsf(error) > m->Anti_windup_error)
-//         apply_integrator = 0;
-
-//     if (apply_integrator)
-//         m->error_sum += error;
-//     if (m->error_sum > m->Outmax)
-//         m->error_sum = m->Outmax;
-//     if (m->error_sum < m->Outmin)
-//         m->error_sum = m->Outmin;
-
-//     float derivative = (measured_input - m->prev_input) / m->Ts;
-//     float output = m->Kp * error + m->Ki * m->error_sum * m->Ts - m->Kd * derivative;
-
-//     if (output > m->Outmax)
-//         output = m->Outmax;
-//     if (output < m->Outmin)
-//         output = m->Outmin;
-
-//     m->prev_input = measured_input;
-
-//     return output;
-// }
-
-void smart_motor_update(void)
+static float motor_pid_calc(smart_motor_t *m, float measured_input)
 {
-    for (int i = 0; i < NUM_DC_MOTOR_JOINTS; ++i) {
-        uint16_t measured_angle = potentiometer_read(motor_joints[i]);
-        TRACE("Joint %d: measured_angle=%u\n", i, measured_angle);
-    }
+    float error = (float)m->setpoint - measured_input;
+    int apply_integrator = 1;
+    if (m->Anti_windup && fabsf(error) > m->Anti_windup_error)
+        apply_integrator = 0;
+
+    if (apply_integrator)
+        m->error_sum += error;
+    if (m->error_sum > m->Outmax)
+        m->error_sum = m->Outmax;
+    if (m->error_sum < m->Outmin)
+        m->error_sum = m->Outmin;
+
+    float derivative = (measured_input - m->prev_input) / m->Ts;
+    float output = m->Kp * error + m->Ki * m->error_sum * m->Ts - m->Kd * derivative;
+
+    if (output > m->Outmax)
+        output = m->Outmax;
+    if (output < m->Outmin)
+        output = m->Outmin;
+
+    m->prev_input = measured_input;
+
+    return output;
 }
 
 // void smart_motor_update(void)
 // {
 //     for (int i = 0; i < NUM_DC_MOTOR_JOINTS; ++i) {
-//         smart_motor_t *m = &motors[i];
 //         uint16_t measured_angle = potentiometer_read(motor_joints[i]);
-//         float pid_out = motor_pid_calc(m, (float)measured_angle);
-
-//         uint8_t speed = (uint8_t)fabsf(pid_out);
-//         if (speed > 100)
-//             speed = 100;
-
-//         if (pid_out > 0) {
-//             pwm_set_duty_cycle(m->rpwm_channel, speed);
-//             pwm_set_duty_cycle(m->lpwm_channel, 0);
-//         } else if (pid_out < 0) {
-//             pwm_set_duty_cycle(m->rpwm_channel, 0);
-//             pwm_set_duty_cycle(m->lpwm_channel, speed);
-//         } else {
-//             pwm_set_duty_cycle(m->rpwm_channel, 0);
-//             pwm_set_duty_cycle(m->lpwm_channel, 0);
-//         }
+//         TRACE("Joint %d: measured_angle=%u\n", i, measured_angle);
 //     }
 // }
+
+void smart_motor_update(void)
+{
+    for (int i = 0; i < NUM_DC_MOTOR_JOINTS; ++i) {
+        smart_motor_t *m = &motors[i];
+        uint16_t measured_angle = potentiometer_read(motor_joints[i]);
+        float pid_out = motor_pid_calc(m, (float)measured_angle);
+
+        uint8_t speed = (uint8_t)fabsf(pid_out);
+        if (speed > 100)
+            speed = 100;
+
+        if (pid_out > 0) {
+            pwm_set_duty_cycle(m->rpwm_channel, speed);
+            pwm_set_duty_cycle(m->lpwm_channel, 0);
+        } else if (pid_out < 0) {
+            pwm_set_duty_cycle(m->rpwm_channel, 0);
+            pwm_set_duty_cycle(m->lpwm_channel, speed);
+        } else {
+            pwm_set_duty_cycle(m->rpwm_channel, 0);
+            pwm_set_duty_cycle(m->lpwm_channel, 0);
+        }
+    }
+}
