@@ -5,27 +5,39 @@
 #include "../common/trace.h"
 #include <math.h>
 
+#if defined(ROBOTIC_ARM)
+#define NUM_DC_MOTOR_JOINTS 5
+
 static const joint_e motor_joints[NUM_DC_MOTOR_JOINTS] = {
-    WRIST_NAE_NAE, ELBOW, BICEP, SHOULDER_FRONT_RAISE, SHOULDER_LAT_RAISE,
+    WRIST_NAE_NAE, ELBOW, BICEP, SHOULDER_FRONT_RAISE, SHOULDER_LAT_RAISE
 };
 
 static const pwm_e pwm_r_channels[NUM_DC_MOTOR_JOINTS] = {
-#if defined(ROBOTIC_ARM)
-    PWM_R_WRIST_NAE_NAE, PWM_R_ELBOW, PWM_R_BICEP, PWM_R_SHOULDER_FRONT_RAISE,
-    PWM_R_SHOULDER_LAT_RAISE,
-#elif defined(ARM_SLEEVE)
-    PWM_CHANNEL_1, PWM_CHANNEL_2
-#endif
+    PWM_R_WRIST_NAE_NAE, PWM_R_ELBOW, PWM_R_BICEP, PWM_R_SHOULDER_FRONT_RAISE, PWM_R_SHOULDER_LAT_RAISE
 };
 
 static const pwm_e pwm_l_channels[NUM_DC_MOTOR_JOINTS] = {
-#if defined(ROBOTIC_ARM)
-    PWM_L_WRIST_NAE_NAE, PWM_L_ELBOW, PWM_L_BICEP, PWM_L_SHOULDER_FRONT_RAISE,
-    PWM_L_SHOULDER_LAT_RAISE,
-#elif defined(ARM_SLEEVE)
-    PWM_CHANNEL_3, PWM_CHANNEL_4,
-#endif
+    PWM_L_WRIST_NAE_NAE, PWM_L_ELBOW, PWM_L_BICEP, PWM_L_SHOULDER_FRONT_RAISE, PWM_L_SHOULDER_LAT_RAISE
 };
+
+#elif defined(ARM_SLEEVE)
+#define NUM_DC_MOTOR_JOINTS 2
+
+static const joint_e motor_joints[NUM_DC_MOTOR_JOINTS] = {
+    ELBOW, BICEP   // Only two elements!
+};
+
+static const pwm_e pwm_r_channels[NUM_DC_MOTOR_JOINTS] = {
+    PWM_CHANNEL_1, PWM_CHANNEL_2
+};
+
+static const pwm_e pwm_l_channels[NUM_DC_MOTOR_JOINTS] = {
+    PWM_CHANNEL_3, PWM_CHANNEL_4
+};
+
+#else
+#error "Missing mode define for NUM_DC_MOTOR_JOINTS"
+#endif
 
 typedef struct
 {
