@@ -2,6 +2,7 @@
 #define DC_MOTOR_DRIVER_H
 
 #include <stdint.h>
+#include "../common/joints.h"
 
 #define NUM_DC_MOTOR_JOINTS 5
 
