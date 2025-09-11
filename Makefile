@@ -51,7 +51,7 @@ OPEN_OCD = openocd
 # Tools Path for Open-ocd
 ## Personal path: /opt/homebrew/Cellar/open-ocd/0.12.0_1/share/openocd/scripts
 TOOLS_OPEN_OCD_DIR = ${TOOLS_OPEN_OCD_DIR_PATH}
-OPEN_OCD_DIR = $(TOOLS_ARM_OPEN_OCD_DIR)
+OPEN_OCD_DIR = $(TOOLS_OPEN_OCD_DIR)
 OPEN_OCD_TARGET = $(OPEN_OCD_DIR)/target/stm32f4x.cfg
 OPEN_OCD_STLINK = $(OPEN_OCD_DIR)/interface/stlink.cfg
 
@@ -81,6 +81,7 @@ SOURCES_WITH_HEADERS = \
 		  src/drivers/servo_driver.c \
 		  src/drivers/imu_driver.c \
 		  src/drivers/MadgwickAHRS.c \
+		  src/drivers/dc_motor_driver.c \
 		  src/common/ring_buffer.c \
 		  src/common/trace.c \
 		  src/common/assert_handler.c \

@@ -12,19 +12,6 @@
 #define PWM_RESOLUTION 18464
 #define PWM_PERIOD_TICKS PWM_RESOLUTION
 
-const joint_e pwm_joints[] = {
-    WRIST_NAE_NAE, ELBOW, BICEP, SHOULDER_FRONT_RAISE, SHOULDER_LAT_RAISE,
-};
-
-int get_pwm_channel_index(joint_e joint)
-{
-    for (size_t i = 0; i < (int)NUM_PWM_CHANNELS; ++i) {
-        if (pwm_joints[i] == joint)
-            return i;
-    }
-    return -1; // Not a PWM-controlled joint
-}
-
 struct pwm_channel_config
 {
     TIM_TypeDef *tim;
@@ -37,7 +24,121 @@ struct pwm_channel_config
     uint32_t ccer_mask;
 };
 
-static struct pwm_channel_config pwm_channel_configs[] = {
+static struct pwm_channel_config pwm_channel_configs[NUM_PWM_CHANNELS] = {
+#if defined(ROBOTIC_ARM)
+    // PWM_L_WRIST_NAE_NAE: PA6 TIM3_CH1 AF2
+    {
+        .tim = TIM3,
+        .ccr = &TIM3->CCR1,
+        .ccm = &TIM3->CCMR1,
+        .cce = &TIM3->CCER,
+        .egr = &TIM3->EGR,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR1_OC1PE,
+        .ccer_mask = TIM_CCER_CC1E,
+    },
+    // PWM_R_WRIST_NAE_NAE: PB7 TIM4_CH2 AF2
+    {
+        .tim = TIM4,
+        .ccr = &TIM4->CCR2,
+        .ccm = &TIM4->CCMR1,
+        .cce = &TIM4->CCER,
+        .egr = &TIM4->EGR,
+        .oc_shift = TIM_CCMR1_OC2M_Pos,
+        .ocpe_mask = TIM_CCMR1_OC2PE,
+        .ccer_mask = TIM_CCER_CC2E,
+    },
+    // PWM_L_ELBOW: PC7 TIM3_CH2 AF2
+    {
+        .tim = TIM3,
+        .ccr = &TIM3->CCR2,
+        .ccm = &TIM3->CCMR1,
+        .cce = &TIM3->CCER,
+        .egr = &TIM3->EGR,
+        .oc_shift = TIM_CCMR1_OC2M_Pos,
+        .ocpe_mask = TIM_CCMR1_OC2PE,
+        .ccer_mask = TIM_CCER_CC2E,
+    },
+    // PWM_R_ELBOW: PC6 TIM8_CH1 AF3
+    {
+        .tim = TIM8,
+        .ccr = &TIM8->CCR1,
+        .ccm = &TIM8->CCMR1,
+        .cce = &TIM8->CCER,
+        .egr = &TIM8->EGR,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR1_OC1PE,
+        .ccer_mask = TIM_CCER_CC1E,
+    },
+    // PWM_L_BICEP: PB6 TIM4_CH1 AF2
+    {
+        .tim = TIM4,
+        .ccr = &TIM4->CCR1,
+        .ccm = &TIM4->CCMR1,
+        .cce = &TIM4->CCER,
+        .egr = &TIM4->EGR,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR1_OC1PE,
+        .ccer_mask = TIM_CCER_CC1E,
+    },
+    // PWM_R_BICEP: PA2 TIM2_CH2 AF1
+    {
+        .tim = TIM2,
+        .ccr = &TIM2->CCR2,
+        .ccm = &TIM2->CCMR1,
+        .cce = &TIM2->CCER,
+        .egr = &TIM2->EGR,
+        .oc_shift = TIM_CCMR1_OC2M_Pos,
+        .ocpe_mask = TIM_CCMR1_OC2PE,
+        .ccer_mask = TIM_CCER_CC2E,
+    },
+    // PWM_L_SHOULDER_FRONT_RAISE: PB10 TIM2_CH3 AF1
+    {
+        .tim = TIM2,
+        .ccr = &TIM2->CCR3,
+        .ccm = &TIM2->CCMR2,
+        .cce = &TIM2->CCER,
+        .egr = &TIM2->EGR,
+        .oc_shift = 4,
+        .ocpe_mask = TIM_CCMR2_OC3PE,
+        .ccer_mask = TIM_CCER_CC3E,
+    },
+    // PWM_R_SHOULDER_FRONT_RAISE: PB1 TIM3_CH4 AF2
+    {
+        .tim = TIM3,
+        .ccr = &TIM3->CCR4,
+        .ccm = &TIM3->CCMR2,
+        .cce = &TIM3->CCER,
+        .egr = &TIM3->EGR,
+        .oc_shift = TIM_CCMR2_OC4M_Pos,
+        .ocpe_mask = TIM_CCMR2_OC4PE,
+        .ccer_mask = TIM_CCER_CC4E,
+    },
+    // PWM_L_SHOULDER_LAT_RAISE: PA3 TIM2_CH4 AF1
+    {
+        .tim = TIM2,
+        .ccr = &TIM2->CCR4,
+        .ccm = &TIM2->CCMR2,
+        .cce = &TIM2->CCER,
+        .egr = &TIM2->EGR,
+        .oc_shift = TIM_CCMR2_OC4M_Pos,
+        .ocpe_mask = TIM_CCMR2_OC4PE,
+        .ccer_mask = TIM_CCER_CC4E,
+    },
+    // PWM_R_SHOULDER_LAT_RAISE: PA7 TIM8_CH2 AF3
+    {
+        .tim = TIM8,
+        .ccr = &TIM8->CCR2,
+        .ccm = &TIM8->CCMR1,
+        .cce = &TIM8->CCER,
+        .egr = &TIM8->EGR,
+        .oc_shift = TIM_CCMR1_OC2M_Pos,
+        .ocpe_mask = TIM_CCMR1_OC2PE,
+        .ccer_mask = TIM_CCER_CC2E,
+    },
+#endif
+
+#if defined(ARM_SLEEVE)
     {
         .tim = TIM3,
         .ccr = &TIM3->CCR1,
@@ -60,19 +161,6 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .ccer_mask = TIM_CCER_CC2E,
     },
 
-#if defined(ROBOTIC_ARM)
-    {
-        .tim = TIM8,
-        .ccm = &TIM8->CCMR1,
-        .cce = &TIM8->CCER,
-        .ccr = &TIM8->CCR1,
-        .egr = &TIM8->EGR,
-        .ccer_mask = TIM_CCER_CC1E,
-        .oc_shift = 4,
-        .ocpe_mask = TIM_CCMR1_OC1PE,
-    },
-#endif
-
     {
         .tim = TIM2,
         .ccm = &TIM2->CCMR2,
@@ -94,6 +182,7 @@ static struct pwm_channel_config pwm_channel_configs[] = {
         .oc_shift = 4,
         .ocpe_mask = TIM_CCMR1_OC1PE,
     },
+#endif
 };
 
 // Removed strict io_config assertion due to mixed AFs
@@ -139,9 +228,9 @@ void pwm_init(void)
     initialized = true;
 }
 
-void pwm_channel_enable(joint_e joint)
+void pwm_channel_enable(pwm_e pwm_channel)
 {
-    int idx = get_pwm_channel_index(joint);
+    int idx = pwm_channel;
     ASSERT(idx >= 0 && idx < (int)NUM_PWM_CHANNELS);
     struct pwm_channel_config *ch = &pwm_channel_configs[idx];
 
@@ -181,16 +270,16 @@ static inline uint32_t pwm_scale_duty_cycle(struct pwm_channel_config *ch,
     return (duty_cycle_percent * period) / 100;
 }
 
-void pwm_set_duty_cycle(joint_e joint, uint8_t duty_cycle_percent)
+void pwm_set_duty_cycle(pwm_e pwm_channel, uint8_t duty_cycle_percent)
 {
-    int idx = get_pwm_channel_index(joint);
+    int idx = pwm_channel;
     ASSERT(idx >= 0 && idx < (int)NUM_PWM_CHANNELS);
     struct pwm_channel_config *ch = &pwm_channel_configs[idx];
 
     if (duty_cycle_percent > 0) {
         uint32_t ccr_val = pwm_scale_duty_cycle(ch, duty_cycle_percent);
         *(ch->ccr) = ccr_val;
-        pwm_channel_enable(joint);
+        pwm_channel_enable(pwm_channel);
     } else {
         *(ch->ccr) = 0;
     }
