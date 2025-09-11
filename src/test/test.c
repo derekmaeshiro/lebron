@@ -11,6 +11,7 @@
 #include "../drivers/i2c.h"
 #include "../drivers/servo_driver.h"
 #include "../drivers/imu_driver.h"
+#include "../drivers/dc_motor_driver.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
 #include "../common/trace.h"
@@ -613,6 +614,26 @@ void test_potentiometer(void)
     }
     // #endif
 }
+
+SUPPRESS_UNUSED
+void test_potentiometer_read(void)
+{
+    test_setup();
+    trace_init();
+    analog_mux_init();
+    adc_init();
+    potentiometer_init(); // Make sure potentiometer system is initialized
+
+    // Choose a joint to test
+    joint_e test_joint = WRIST_NAE_NAE; // Change to another joint if needed
+
+    while (1) {
+        uint16_t angle = potentiometer_read(test_joint);
+        TRACE("potentiometer_read for joint %d: angle=%u\n", test_joint, angle);
+        BUSY_WAIT_ms(200); // 200 ms delay, adjust as needed
+    }
+}
+
 SUPPRESS_UNUSED
 void test_read_all_potentiometers(void)
 {
@@ -1150,8 +1171,8 @@ void test_pwm_init(void)
 
     pwm_init();
 
-    for (size_t i = 0; i < NUM_PWM_CHANNELS; ++i) {
-        pwm_set_duty_cycle(pwm_joints[i], 50); // Set to 50% duty cycle
+    for (pwm_e pwm_channel = 0; pwm_channel < NUM_PWM_CHANNELS; ++pwm_channel) {
+        pwm_set_duty_cycle(pwm_channel, 50); // Set to 50% duty cycle
     }
 }
 
@@ -1172,18 +1193,96 @@ void test_pwm(void)
             TRACE("Set duty cycle to %d for %d ms\n", duty_cycles[i], WAIT_TIME_MS);
             led_set(LED_TEST, LED_STATE_ON);
             // set duty cycle for each joint
-            for (uint8_t j = 0; j < NUM_PWM_CHANNELS; j++) {
-                pwm_set_duty_cycle(pwm_joints[j], duty_cycles[i]);
+            for (pwm_e pwm_channel = 0; pwm_channel < NUM_PWM_CHANNELS; pwm_channel++) {
+                pwm_set_duty_cycle(pwm_channel, duty_cycles[i]);
             }
             BUSY_WAIT_ms(WAIT_TIME_MS);
 
             TRACE("Turning off PWM and waiting for %d ms\n", WAIT_TIME_MS);
             led_set(LED_TEST, LED_STATE_OFF);
-            for (uint8_t j = 0; j < NUM_PWM_CHANNELS; j++) {
-                pwm_set_duty_cycle(pwm_joints[j], 0);
+            for (pwm_e pwm_channel = 0; pwm_channel < NUM_PWM_CHANNELS; pwm_channel++) {
+                pwm_set_duty_cycle(pwm_channel, 0);
             }
             BUSY_WAIT_ms(WAIT_TIME_MS);
         }
+    }
+}
+
+void test_dc_motor_movement(void)
+{
+    test_setup();
+    trace_init();
+    adc_init();
+    led_init();
+    pwm_init();
+    potentiometer_init();
+    smart_motor_init();
+
+#if defined(ROBOTIC_ARM)
+    pwm_set_duty_cycle(PWM_R_WRIST_NAE_NAE, 100);
+    pwm_set_duty_cycle(PWM_L_WRIST_NAE_NAE, 0);
+    BUSY_WAIT_ms(2000);
+    pwm_set_duty_cycle(PWM_R_WRIST_NAE_NAE, 0); // Stop
+    pwm_set_duty_cycle(PWM_L_WRIST_NAE_NAE, 0);
+#elif defined(ARM_SLEEVE)
+    pwm_set_duty_cycle(PWM_CHANNEL_1, 100);
+    pwm_set_duty_cycle(PWM_CHANNEL_3, 0);
+    BUSY_WAIT_ms(2000);
+    pwm_set_duty_cycle(PWM_CHANNEL_1, 0);
+    pwm_set_duty_cycle(PWM_CHANNEL_3, 0);
+#endif
+
+    TRACE("end\n");
+}
+
+void test_potentiometer_adc(void) 
+{
+    test_setup();
+    trace_init();
+    adc_init();
+    led_init();
+    pwm_init();
+    potentiometer_init();
+    smart_motor_init();
+
+    while (1) {
+        // Select mux board 2, channel/pin 5
+        toggle_analog_mux(MUX_BOARD_2, 5);
+
+        // Discard first ADC read after mux switching, per your driver
+        adc_read_single(1);       
+
+        // Now read the actual value: board 2 = ADC channel 1 (per your API)
+        uint16_t raw = adc_read_single(1);
+
+        TRACE("ADC Raw (Mux2, Ch5): %u\n", raw);
+
+        BUSY_WAIT_ms(100); // adjust as desired
+    }
+}
+
+void test_wrist_nae_nae(void)
+{
+    test_setup();
+    trace_init();
+    adc_init();
+    led_init();
+    pwm_init();
+    potentiometer_init();
+    smart_motor_init();
+
+    joint_e test_joint = WRIST_NAE_NAE; // Change to another joint if needed
+
+    // Move WRIST_NAE_NAE to 0°
+    smart_motor_set_angle(test_joint, 60);
+    TRACE("smart motor set angle done\n");
+
+    // Run the PID update loop for a while (here, 4 seconds if you call every 20ms)
+    for (int i = 0; i < 200; ++i) {
+        uint16_t angle = potentiometer_read(test_joint);
+        TRACE("potentiometer_read for joint %d: angle=%u\n", test_joint, angle);
+        smart_motor_update();
+        BUSY_WAIT_ms(20);
     }
 }
 

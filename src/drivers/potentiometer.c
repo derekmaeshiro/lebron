@@ -75,10 +75,6 @@ uint16_t potentiometer_read(joint_e joint)
     analog_mux_e mux = potentiometer_configs[joint].mux;
     uint8_t mux_pin = potentiometer_configs[joint].mux_pin;
 
-    // If hardware doesn't support the joint, struct is zero-initialized
-    if (mux == 0 && mux_pin == 0)
-        return 0;
-
     toggle_analog_mux(mux, mux_pin);
     adc_read_single(mux == MUX_BOARD_1 ? 0 : 1);
     uint16_t adc_value = adc_read_single(mux == MUX_BOARD_1 ? 0 : 1);
@@ -115,4 +111,12 @@ void read_all_potentiometers(uint16_t *angles)
         angles[i] = potentiometer_read((joint_e)i) - potentiometer_bias[i];
     }
 }
-// #endif
+
+uint16_t potentiometer_read_adc(joint_e joint)
+{
+    analog_mux_e mux = potentiometer_configs[joint].mux;
+    uint8_t mux_pin = potentiometer_configs[joint].mux_pin;
+    toggle_analog_mux(mux, mux_pin);
+    adc_read_single(mux == MUX_BOARD_1 ? 0 : 1); // discard first reading after switching
+    return adc_read_single(mux == MUX_BOARD_1 ? 0 : 1); // return raw ADC value
+}
