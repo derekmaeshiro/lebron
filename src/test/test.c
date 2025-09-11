@@ -1218,11 +1218,20 @@ void test_dc_motor_movement(void)
     potentiometer_init();
     smart_motor_init();
 
+#if defined(ROBOTIC_ARM)
     pwm_set_duty_cycle(PWM_R_WRIST_NAE_NAE, 100);
     pwm_set_duty_cycle(PWM_L_WRIST_NAE_NAE, 0);
     BUSY_WAIT_ms(2000);
     pwm_set_duty_cycle(PWM_R_WRIST_NAE_NAE, 0); // Stop
     pwm_set_duty_cycle(PWM_L_WRIST_NAE_NAE, 0);
+#elif defined(ARM_SLEEVE)
+    pwm_set_duty_cycle(PWM_CHANNEL_1, 100);
+    pwm_set_duty_cycle(PWM_CHANNEL_3, 0);
+    BUSY_WAIT_ms(2000);
+    pwm_set_duty_cycle(PWM_CHANNEL_1, 0);
+    pwm_set_duty_cycle(PWM_CHANNEL_3, 0);
+#endif
+
     TRACE("end\n");
 }
 
