@@ -1212,6 +1212,7 @@ void test_wrist_nae_nae(void)
 {
     test_setup();
     trace_init();
+    adc_init();
     led_init();
     pwm_init();
     potentiometer_init();
