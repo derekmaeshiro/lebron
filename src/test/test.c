@@ -568,6 +568,13 @@ void test_multiple_servos(void)
     servo_driver_init(&driver, 0x40); // Includes set-all to 90 deg
     // Next line guarantees channel 0 gets set again:
     // servo_driver_set_servo_angle(&driver, 0, 90);
+
+    while (1) {
+        servo_driver_set_servo_angle(&driver, 0, 0);
+        BUSY_WAIT_ms(1000);
+        servo_driver_set_servo_angle(&driver, 0, 90);
+        BUSY_WAIT_ms(1000);
+    }
     while (1) { }
 }
 
@@ -1131,7 +1138,7 @@ void test_potentiometer_workflow(void)
 
     potentiometer_workflow_init();
     potentiometer_workflow_enable();
-    //TRACE("Testing potentiometer_workflow for ARM_SLEEVE...");
+    TRACE("Testing potentiometer_workflow for ARM_SLEEVE...");
     while(1){
         potentiometer_workflow_run();
         BUSY_WAIT_ms(1000);
@@ -1142,7 +1149,6 @@ void test_potentiometer_workflow(void)
 
     potentiometer_workflow_init();
     potentiometer_workflow_enable();
-    TRACE("Testing potentiometer_workflow for ROBOTIC_ARM...");
     while(1){
         potentiometer_workflow_run();
     }

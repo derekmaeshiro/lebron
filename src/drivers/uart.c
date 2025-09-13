@@ -231,7 +231,7 @@ void serialize_potentiometer_reading(const struct potentiometer_reading *reading
 void deserialize_potentiometer_reading(const char *data, struct potentiometer_reading *reading)
 {
     uint8_t idx = 0;
-
+    
     // Parse board
     uint32_t board_val = atou_uint(data, &idx);
 
