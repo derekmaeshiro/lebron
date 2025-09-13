@@ -181,7 +181,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
                                  IO_OUT_LOW }, // PB12
     [IO_ANALOG_MUX_ENABLE_2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                                  IO_OUT_LOW }, // PB13
-    [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0  
+    [IO_ANALOG_MUX_COM_1] = ADC_CONFIG, // PA0
     [IO_ANALOG_MUX_COM_2] = ADC_CONFIG, // PA1
 #endif
 };
