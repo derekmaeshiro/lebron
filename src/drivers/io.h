@@ -76,7 +76,7 @@ typedef enum {
     IO_ANALOG_MUX_1_S2 = IO_PB3, // Analog Mux Bit Configuration
     IO_ANALOG_MUX_1_S3 = IO_PA15, // Analog Mux Bit Configuration
     IO_ANALOG_MUX_2_S0 = IO_PB0, // Analog Mux Bit Configuration
-    IO_ANALOG_MUX_2_S1 = IO_PC1, // Analog Mux Bit Configuration
+    IO_ANALOG_MUX_2_S1 = IO_PB1, // Analog Mux Bit Configuration
     IO_ANALOG_MUX_2_S2 = IO_PA4, // Analog Mux Bit Configuration
     IO_ANALOG_MUX_2_S3 = IO_PA8, // Analog Mux Bit Configuration
     IO_ANALOG_MUX_ENABLE_1 = IO_PB12, // Analog Mux Enable Pin

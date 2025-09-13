@@ -126,7 +126,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
     [IO_PWM_L_ELBOW] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2, IO_RESISTOR_DISABLED,
                          IO_OUT_LOW }, // PA7
     [IO_PWM_L_BICEP] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_3, IO_RESISTOR_DISABLED,
-                         IO_OUT_LOW }, // PC6?
+                         IO_OUT_LOW }, // PC6
     [IO_PWM_L_SHOULDER_FRONT_RAISE] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_1,
                                         IO_RESISTOR_DISABLED, IO_OUT_LOW }, // PB10
     [IO_PWM_L_SHOULDER_LAT_RAISE] = { true, IO_SELECT_ALT, IO_ALT_FUNCTION_2, IO_RESISTOR_DISABLED,
@@ -172,7 +172,7 @@ static const struct io_config io_initial_configs[IO_PORT_CNT * IO_PIN_CNT_PER_PO
     [IO_ANALOG_MUX_2_S0] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                              IO_OUT_LOW }, // PB0
     [IO_ANALOG_MUX_2_S1] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
-                             IO_OUT_LOW }, // PC1
+                             IO_OUT_LOW }, // PB1
     [IO_ANALOG_MUX_2_S2] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
                              IO_OUT_LOW }, // PA4
     [IO_ANALOG_MUX_2_S3] = { true, IO_SELECT_OUTPUT, IO_ALT_FUNCTION_0, IO_RESISTOR_DISABLED,
