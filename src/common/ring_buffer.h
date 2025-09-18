@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 struct ring_buffer
 {
     uint8_t *buffer;
-    uint8_t size;
+    size_t size;
     uint8_t head;
     uint8_t tail;
 };

@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define SERVO_DRIVER_MAX_CHANNELS 16
-
 typedef enum {
     CHANNEL_0 = 0,
     CHANNEL_1,
@@ -21,7 +19,8 @@ typedef enum {
     CHANNEL_12,
     CHANNEL_13,
     CHANNEL_14,
-    CHANNEL_15
+    CHANNEL_15,
+    SERVO_DRIVER_MAX_CHANNELS,
 } servo_channel_t;
 
 typedef enum {

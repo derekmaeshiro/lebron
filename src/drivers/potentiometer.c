@@ -108,7 +108,9 @@ void calibrate_potentiometers(void)
 void read_all_potentiometers(uint16_t *angles)
 {
     for (uint8_t i = 0; i < (uint8_t)NUM_OF_JOINTS; i++) {
-        angles[i] = potentiometer_read((joint_e)i) - potentiometer_bias[i];
+        uint16_t read = potentiometer_read((joint_e)i); // 0...360
+        uint16_t bias = potentiometer_bias[i]; // 0...360
+        angles[i] = (read + 360 - bias) % 360;
     }
 }
 

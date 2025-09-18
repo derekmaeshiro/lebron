@@ -5,6 +5,10 @@
 #ifndef UART_H
 #define UART_H
 
+#define LINE_BUF_SIZE 32
+#define UART_TX_BUFFER_SIZE (17)
+#define UART_RX_BUFFER_SIZE (NUM_OF_JOINTS * LINE_BUF_SIZE * 4) // handle bursts
+
 extern struct ring_buffer rx_buffer;
 extern struct ring_buffer tx_buffer;
 
