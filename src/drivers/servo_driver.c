@@ -25,8 +25,8 @@ static void servo_driver_set_pwm_channel(uint8_t slave_address, uint8_t channel,
 
 uint16_t angle_to_off_converter(uint16_t angle)
 {
-    if (angle > 180)
-        angle = 180;
+    // if (angle > 180)
+    //     angle = 180;
     uint16_t pulse_width_us =
         SERVO_MIN_PULSE_US + ((SERVO_MAX_PULSE_US - SERVO_MIN_PULSE_US) * angle) / 180;
     uint32_t pulse_period_us = 1000000UL / PCA9685_PWM_FREQUENCY;

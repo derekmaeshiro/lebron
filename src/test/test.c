@@ -572,10 +572,99 @@ void test_multiple_servos(void)
     while (1) {
         servo_driver_set_servo_angle(&driver, 0, 0);
         BUSY_WAIT_ms(1000);
-        servo_driver_set_servo_angle(&driver, 0, 90);
+        servo_driver_set_servo_angle(&driver, 0, 185);
         BUSY_WAIT_ms(1000);
     }
     while (1) { }
+}
+
+void test_wave_hi(void)
+{
+    test_setup();
+    i2c_init();
+    servo_driver_t driver = { 0 };
+    servo_driver_init(&driver, 0x40); // Includes set-all to 90 deg
+    // Next line guarantees channel 0 gets set again:
+    // servo_driver_set_servo_angle(&driver, 0, 90);
+
+    BUSY_WAIT_ms(5000);
+
+    while (1) {
+        servo_driver_set_servo_angle(&driver, 0, 225);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 215);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 205);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 195);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 185);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 175);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 165);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 155);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 145);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 135);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 125);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 115);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 105);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 95);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 85);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 75);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 65);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 55);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 45);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 55);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 65);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 75);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 85);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 95);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 105);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 115);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 125);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 135);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 145);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 155);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 165);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 175);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 185);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 195);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 205);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 215);
+        BUSY_WAIT_ms(200);
+        servo_driver_set_servo_angle(&driver, 0, 225);
+        BUSY_WAIT_ms(200);
+    }
 }
 
 SUPPRESS_UNUSED
@@ -1154,6 +1243,188 @@ void test_potentiometer_workflow(void)
     }
 
     #endif
+}
+
+void test_deserialize_potentiometer_reading(void)
+{
+    test_setup();
+    uart_init();
+    trace_init();
+    potentiometer_init();
+
+    const char* test_batch[] = {
+        "0,107","1,65","2,46","3,44","4,51","5,24","6,25","7,7",
+        "8,63","9,34","10,12","11,19","12,10","13,4","14,12","15,1",
+        "16,1","17,14","18,65526","19,107","20,106","21,105","22,105",
+        "23,106","24,106","25,105",
+    };
+    const size_t batch_size = sizeof(test_batch)/sizeof(test_batch[0]);
+
+    TRACE("Testing deserialize_potentiometer_reading ...");
+    for(size_t i=0; i<batch_size; ++i)
+    {
+        struct potentiometer_reading r;
+        deserialize_potentiometer_reading(test_batch[i], &r);
+        TRACE("Line: %s -> board: %d, angle: %u", test_batch[i], r.potentiometer_board, r.angle);
+    }
+    TRACE("Done test.");
+}
+
+void test_three_servo_batches(void)
+{
+    test_setup();
+    adc_init();
+    uart_init();
+    i2c_init();
+    potentiometer_init();
+    trace_init();
+
+    servo_driver_t driver = { 0 };
+    servo_driver_init(&driver, 0x40);
+
+    const char* test_batch1[] = {
+        "0,0","1,65","2,46","3,44","4,51","5,24","6,25","7,7",
+        "8,63","9,34","10,12","11,19","12,10","13,4","14,12","15,1",
+        "16,1","17,14","18,65526","19,107","20,106","21,105","22,105",
+        "23,106","24,106","25,105",
+    };
+    const char* test_batch2[] = {
+        "0,90","1,65","2,46","3,44","4,51","5,24","6,25","7,7",
+        "8,63","9,34","10,12","11,19","12,10","13,4","14,12","15,1",
+        "16,1","17,14","18,65526","19,107","20,106","21,105","22,105",
+        "23,106","24,106","25,105",
+    };
+    const char* test_batch3[] = {
+        "0,0","1,65","2,46","3,44","4,51","5,24","6,25","7,7",
+        "8,63","9,34","10,12","11,19","12,10","13,4","14,12","15,1",
+        "16,1","17,14","18,65526","19,107","20,106","21,105","22,105",
+        "23,106","24,106","25,105",
+    };
+    const size_t batch_size = 26;
+
+    uint16_t batch_angles[3][batch_size];
+    const char** all_batches[] = { test_batch1, test_batch2, test_batch3 };
+
+    // Step 1: Deserialize all batches to angles arrays
+    for (size_t batch_idx = 0; batch_idx < 3; ++batch_idx) {
+        const char** current_batch = all_batches[batch_idx];
+        for (size_t i = 0; i < batch_size; ++i) {
+            struct potentiometer_reading r;
+            deserialize_potentiometer_reading(current_batch[i], &r);
+            batch_angles[batch_idx][r.potentiometer_board] = r.angle;
+            //TRACE("Batch %zu Line: %s -> board: %d, angle: %u", batch_idx+1, current_batch[i], r.potentiometer_board, r.angle);
+        }
+    }
+
+    // Step 2: Command servos in sequence for each batch
+    for (size_t batch_idx = 0; batch_idx < 3; ++batch_idx) {
+        TRACE("Sending Batch %zu", batch_idx+1);
+        for (size_t i = 0; i < 16; ++i) {
+            uint16_t angle = batch_angles[batch_idx][i];
+            servo_driver_set_servo_angle(&driver, (servo_channel_t)i, angle);
+            //TRACE("SERVO[%zu] -> %u", i, angle);
+        }
+        //TRACE("Batch %zu sent\n", batch_idx+1);
+        BUSY_WAIT_ms(500);
+    }
+
+    TRACE("Done moving all batches.");
+}
+
+void test_three_servo_batches_with_rxbuffer(void)
+{
+    test_setup();
+    adc_init();
+    uart_init();
+    i2c_init();
+    potentiometer_init();
+    trace_init();
+
+    servo_driver_t driver = { 0 };
+    servo_driver_init(&driver, 0x40);
+
+    BUSY_WAIT_ms(1000);
+
+    const char* test_batch1[] = {
+        "0,0","1,65","2,46","3,44","4,51","5,24","6,25","7,7",
+        "8,63","9,34","10,12","11,19","12,10","13,4","14,12","15,1",
+        "16,1","17,14","18,65526","19,107","20,106","21,105","22,105",
+        "23,106","24,106","25,105",
+    };
+    const char* test_batch2[] = {
+        "0,90","1,65","2,46","3,44","4,51","5,24","6,25","7,7",
+        "8,63","9,34","10,12","11,19","12,10","13,4","14,12","15,1",
+        "16,1","17,14","18,65526","19,107","20,106","21,105","22,105",
+        "23,106","24,106","25,105",
+    };
+    const char* test_batch3[] = {
+        "0,0","1,65","2,46","3,44","4,51","5,24","6,25","7,7",
+        "8,63","9,34","10,12","11,19","12,10","13,4","14,12","15,1",
+        "16,1","17,14","18,65526","19,107","20,106","21,105","22,105",
+        "23,106","24,106","25,105",
+    };
+    const size_t batch_size = 26;
+    const char** all_batches[] = { test_batch1, test_batch2, test_batch3 };
+
+    char line_buf[32];
+    size_t line_pos = 0;
+    struct potentiometer_reading all_readings[SERVO_DRIVER_MAX_CHANNELS];
+
+    // Simulate batches
+    for (size_t batch_idx = 0; batch_idx < 3; ++batch_idx) {
+        const char** current_batch = all_batches[batch_idx];
+        // Reset simulated rx_buffer indexes
+        rx_buffer.head = rx_buffer.tail = 0;
+
+        // Fill rx_buffer as serial data stream
+        for (size_t i = 0; i < batch_size; ++i) {
+            const char* line = current_batch[i];
+            for (size_t j = 0; line[j] != '\0'; ++j) {
+                ring_buffer_put(&rx_buffer, (uint8_t)line[j]);
+            }
+            ring_buffer_put(&rx_buffer, '\n'); // Simulate UART EOL
+        }
+
+        TRACE("Processing Batch %zu...", batch_idx+1);
+
+        // Now: parse out lines from rx_buffer, like your poll function
+        size_t updated_count = 0;
+        bool updated_channels[SERVO_DRIVER_MAX_CHANNELS] = {0};
+
+        while (!ring_buffer_empty(&rx_buffer)) {
+            uint8_t c = ring_buffer_get(&rx_buffer);
+            if (c == '\r') continue;
+            if (c == '\n') {
+                line_buf[line_pos] = '\0';
+                struct potentiometer_reading reading;
+                deserialize_potentiometer_reading(line_buf, &reading);
+                if ((int)reading.potentiometer_board < (int)SERVO_DRIVER_MAX_CHANNELS) {
+                    size_t idx = reading.potentiometer_board;
+                    all_readings[idx] = reading;
+                    if (!updated_channels[idx]) {
+                        updated_channels[idx] = true;
+                        updated_count++;
+                    }
+                }
+                line_pos = 0;
+            } else if (line_pos < sizeof(line_buf)-1) {
+                line_buf[line_pos++] = c;
+            }
+        }
+
+        // When all channels updated, command servos!
+        if (updated_count == SERVO_DRIVER_MAX_CHANNELS) {
+            TRACE("Moving servos for Batch %zu", batch_idx+1);
+            for (size_t i = 0; i < SERVO_DRIVER_MAX_CHANNELS; ++i) {
+                servo_driver_set_servo_angle(&driver, (servo_channel_t)i, all_readings[i].angle);
+            }
+        } else {
+            TRACE("WARNING: Only %zu channels updated in this batch!", updated_count);
+        }
+
+        BUSY_WAIT_ms(500);
+    }
+    TRACE("Done moving all simulated batches.");
 }
 
 void test_get_ms(void)
