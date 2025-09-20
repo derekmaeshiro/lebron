@@ -1,7 +1,10 @@
 # L.E.B.R.O.N. Mark I – Project Recap & Improvement Roadmap
 Date: 9/20/25
+
 Project Lead: Derek
+
 Firmware Side: Theo & Derek
+
 Mechanical Side: Vince, Kaden, & Nicholas
 
 ![LEBRON_MARK_1](images/LEBRON_MARK_1.jpg)
@@ -14,11 +17,14 @@ The Limb Enabled for Bluetooth Remote Operation & Navigation (L.E.B.R.O.N.) is a
 - Elbow: 1 joint
 - Bicep: 1 joint
 - Shoulder: 2 joints
+
 Though real human arms have more degrees of freedom, we opted for this more common and achievable design, drawing inspiration from both professional and hobbyist robotic arms.
 
 ## Biomimetic Inspiration & Design Choices
 I initially sought to closely mimic human anatomy, inspired by startups like Clone Robotics who replicate tendons, muscles, and bones for superior dexterity. My research began with studying NBA-sized hand dimensions and how grip force and hand surface area contribute to basketball handling.
+
 Human finger motion is driven primarily by two tendons (flexor and extensor), but because robotic scale introduces major mechanical challenges (weight, complexity), we moved away from strict biological fidelity. Attempts to approximate the synovial fluid and nonrigid nature of real joints (e.g., finger fat, curved bones, thumb’s unique orientation) proved impractical at a 1.5x scale due to the limitations of available actuators and materials.
+
 We leveraged air-powered "balloon muscles" early on, but actuator weight and bulk forced a pivot towards more conventional pulleys and servos. For palm and thumb movement, we mimicked the XY-plane articulation but struggled to recreate nuanced motions that aid in authentic basketball gripping.
 
 ## Here are some earlier finger prototypes
@@ -27,7 +33,8 @@ We leveraged air-powered "balloon muscles" early on, but actuator weight and bul
 ![THIRD_FINGER](images/FINGER_PROTOTYPE.jpg)
 
 ## Mechanical Design & Inspirations
-We borrowed heavily from Will Cogley’s techniques, particularly his metacarpal “wag” joints and pulley system. Our finger actuation uses tensioned strings with servos, while larger joints utilize DC motors.
+- We borrowed heavily from Will Cogley’s techniques, particularly his metacarpal “wag” joints and pulley system. Our finger actuation uses tensioned strings with servos, while larger joints utilize DC motors.
+
 ## Key Mechanical Challenges:
 - Torque Requirements: With a fully extended length (forearm to fingertip) of 2 feet—plus bicep and shoulder, totaling up to 3.5 feet—the arm becomes unwieldy. Standard servos lacked the necessary torque; heavier DC motors added more weight, compounding the issue.
 - Dexterity Limitations: 3D printed fingers lack the deformability of human fingers (fat, cartilage), impairing fine control and grip.
@@ -46,7 +53,9 @@ The project's electronics evolved over several iterations. Initially focused on 
 - DC Motors & Drivers
 - UART Bluetooth Modules
 - STM32F446RE & STM32F411 Microcontrollers
+
 Our actuation system used servos for tensioning per-joint pulleys. Sensor feedback was delivered via arm sleeve potentiometers (again, a nod to Cogley’s workflows).
+
 ## Key Electrical Challenges:
 - Insufficient Power: Hobby-grade 9g servos were lightweight but underpowered, only able to move the finger tips. Future revisions require stronger actuators.
 Wiring Organization: Managing three wires per potentiometer plus fishing lines for tendons led to rapid disarray. Lack of preplanned wiring routes and harnesses compounded confusion.
