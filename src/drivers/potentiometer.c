@@ -4,6 +4,7 @@
 #include "potentiometer.h"
 #include "../common/assert_handler.h"
 #include "../common/defines.h"
+#include "../common/joints.h"
 #include "../common/trace.h"
 
 #if defined ROBOTIC_ARM

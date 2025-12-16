@@ -12,6 +12,9 @@ struct potentiometer_config
     uint8_t mux_pin;
 };
 
+extern const struct potentiometer_config potentiometer_configs[NUM_OF_JOINTS];
+extern int16_t potentiometer_bias[NUM_OF_JOINTS];
+
 void potentiometer_init(void);
 uint16_t potentiometer_read(joint_e joint);
 void read_all_potentiometers(uint16_t *angles);

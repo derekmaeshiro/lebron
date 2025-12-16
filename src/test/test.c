@@ -1217,6 +1217,36 @@ void test_uart_rx_buffer(void)
     }
 }
 
+// Test one finger moving with the servo driver
+void test_servos_with_index_finger(void){
+    test_setup();
+    trace_init();
+    i2c_init();
+
+    servo_driver_t driver = { 0 };
+    servo_driver_init(&driver, 0x40);
+
+    joint_e test_joints[] = { INDEX_PROXIMAL, INDEX_MIDDLE, INDEX_DISTAL };
+
+    while(1){
+        for(uint8_t angle=0; angle<=180; angle+=10){
+            for(uint8_t i=0; i<ARRAY_SIZE(test_joints); i++){
+                servo_channel_t channel = servo_configs[test_joints[i]];
+                servo_driver_set_servo_angle(&driver, channel, angle);
+            }
+            BUSY_WAIT_ms(1000);
+        }
+        for(int8_t angle=180; angle>=0; angle-=10){
+            for(uint8_t i=0; i<ARRAY_SIZE(test_joints); i++){
+                servo_channel_t channel = servo_configs[test_joints[i]];
+                servo_driver_set_servo_angle(&driver, channel, angle);
+            }
+            BUSY_WAIT_ms(1000);
+        }
+    }
+
+}
+
 SUPPRESS_UNUSED
 void test_potentiometer_workflow(void)
 {
